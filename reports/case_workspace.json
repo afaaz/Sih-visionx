@@ -1,0 +1,136 @@
+{
+  "reviews": {},
+  "notes": [],
+  "evidence_status": {},
+  "alerts": [
+    {
+      "alert_id": "alert-fe-11f452eba4ba48e4-person_entered-000160-0001",
+      "event_id": "fe-11f452eba4ba48e4-person_entered-000160-0001",
+      "timestamp_seconds": 6.675010429703796,
+      "type": "person_entered",
+      "status": "new",
+      "message": "Track first appeared near the left frame boundary; this infers visible-frame entry only, not real-world entry.",
+      "disclaimer": "Automated alert; investigator verification required."
+    },
+    {
+      "alert_id": "alert-fe-11f452eba4ba48e4-person_entered-000325-0003",
+      "event_id": "fe-11f452eba4ba48e4-person_entered-000325-0003",
+      "timestamp_seconds": 13.558614935335838,
+      "type": "person_entered",
+      "status": "new",
+      "message": "Track first appeared near the left frame boundary; this infers visible-frame entry only, not real-world entry.",
+      "disclaimer": "Automated alert; investigator verification required."
+    },
+    {
+      "alert_id": "alert-fe-11f452eba4ba48e4-movement_detected-000325-0006",
+      "event_id": "fe-11f452eba4ba48e4-movement_detected-000325-0006",
+      "timestamp_seconds": 28.785982478097623,
+      "type": "movement_detected",
+      "status": "new",
+      "message": "Track centroid displacement of 705.11px met the 60.00px threshold.",
+      "disclaimer": "Automated alert; investigator verification required."
+    },
+    {
+      "alert_id": "alert-fe-11f452eba4ba48e4-prolonged_presence-000325-0005",
+      "event_id": "fe-11f452eba4ba48e4-prolonged_presence-000325-0005",
+      "timestamp_seconds": 28.785982478097623,
+      "type": "prolonged_presence",
+      "status": "new",
+      "message": "Track was detected for 15.23s, meeting the 10.00s threshold.",
+      "disclaimer": "Automated alert; investigator verification required."
+    },
+    {
+      "alert_id": "alert-fe-11f452eba4ba48e4-person_entered-001350-0008",
+      "event_id": "fe-11f452eba4ba48e4-person_entered-001350-0008",
+      "timestamp_seconds": 56.32040050062579,
+      "type": "person_entered",
+      "status": "new",
+      "message": "Track first appeared near the left frame boundary; this infers visible-frame entry only, not real-world entry.",
+      "disclaimer": "Automated alert; investigator verification required."
+    },
+    {
+      "alert_id": "alert-fe-11f452eba4ba48e4-person_entered-001375-0010",
+      "event_id": "fe-11f452eba4ba48e4-person_entered-001375-0010",
+      "timestamp_seconds": 57.363370880267006,
+      "type": "person_entered",
+      "status": "new",
+      "message": "Track first appeared near the left frame boundary; this infers visible-frame entry only, not real-world entry.",
+      "disclaimer": "Automated alert; investigator verification required."
+    }
+  ],
+  "workflow": {
+    "status": "ready_for_investigator_review",
+    "last_run_utc": "2026-08-31T20:41:43.908882Z",
+    "steps": [
+      {
+        "name": "Evidence hash verification",
+        "status": "completed",
+        "detail": [
+          {
+            "evidence_id": "ev-11f452eba4ba48e4",
+            "verification_timestamp_utc": "2026-08-31T20:41:42.445483Z",
+            "expected_sha256": "11f452eba4ba48e45301d0d58f971c9edc8e0c41d8b7f214846d1602d4f175fe",
+            "observed_sha256": "11f452eba4ba48e45301d0d58f971c9edc8e0c41d8b7f214846d1602d4f175fe",
+            "observed_size_bytes": 24789774,
+            "status": "MATCH"
+          }
+        ]
+      },
+      {
+        "name": "AI event analysis",
+        "status": "completed"
+      },
+      {
+        "name": "Authenticity risk screening",
+        "status": "completed"
+      },
+      {
+        "name": "Investigator review",
+        "status": "awaiting_review"
+      },
+      {
+        "name": "Signed report export",
+        "status": "available"
+      }
+    ]
+  },
+  "authenticity_screening": [
+    {
+      "status": "no_screening_signal",
+      "method": "sampled perceptual frame fingerprints",
+      "sample_count": 30,
+      "signals": [],
+      "disclaimer": "This is a triage screen, not proof of editing, deepfake content, or authenticity."
+    }
+  ],
+  "privacy_exports": [
+    {
+      "kind": "privacy_preserving_derived_video",
+      "path": "reports\\privacy_exports\\redacted_VIRAT_S_010000_01_000184_000324.mp4",
+      "sha256": "6e902f6cad7eabd7ccf3a5e01a6d147141f00bbab788bef89636d7b3e6cf49d1",
+      "source_sha256_verification": {
+        "verification_timestamp_utc": "2026-08-31T20:39:34.555111Z",
+        "expected_sha256": "11f452eba4ba48e45301d0d58f971c9edc8e0c41d8b7f214846d1602d4f175fe",
+        "observed_sha256": "11f452eba4ba48e45301d0d58f971c9edc8e0c41d8b7f214846d1602d4f175fe",
+        "observed_size_bytes": 24789774,
+        "status": "MATCH"
+      },
+      "method": "conservative full-frame blur",
+      "disclaimer": "Derived share-copy only. Original evidence remains unchanged; this is not face/license-plate-specific redaction."
+    },
+    {
+      "kind": "privacy_preserving_derived_video",
+      "path": "reports\\privacy_exports\\redacted_VIRAT_S_010000_01_000184_000324.mp4",
+      "sha256": "bb2d1f5a3950c5ce994145062bbab48ee874fd9b84ab4c34f409115c717d38cf",
+      "source_sha256_verification": {
+        "verification_timestamp_utc": "2026-08-31T20:40:23.721933Z",
+        "expected_sha256": "11f452eba4ba48e45301d0d58f971c9edc8e0c41d8b7f214846d1602d4f175fe",
+        "observed_sha256": "11f452eba4ba48e45301d0d58f971c9edc8e0c41d8b7f214846d1602d4f175fe",
+        "observed_size_bytes": 24789774,
+        "status": "MATCH"
+      },
+      "method": "conservative full-frame blur",
+      "disclaimer": "Derived share-copy only. Original evidence remains unchanged; this is not face/license-plate-specific redaction."
+    }
+  ]
+}
