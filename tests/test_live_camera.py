@@ -75,6 +75,25 @@ class LiveCameraSubsystemTests(unittest.TestCase):
         self.assertEqual(clear_resp.status_code, 200)
         self.assertEqual(clear_resp.get_json()["status"], "success")
 
+    def test_threat_detection_subsystem(self) -> None:
+        """Verify threat detection classes and status reporting."""
+        from forensiclens.live_camera import THREAT_CLASSES
+        self.assertEqual(THREAT_CLASSES, ["Gun", "Explosion", "Grenade", "Knife"])
+
+        status = self.detector.get_status()
+        self.assertIn("threat_model_status", status)
+        self.assertIn("Supported classes: Gun, explosion, grenade, knife", status["threat_model_status"])
+        self.assertEqual(status["supported_threat_classes"], THREAT_CLASSES)
+
+    def test_evaluate_threat_knife(self) -> None:
+        """Verify Knife threat classification from candidate detections."""
+        frame = np.zeros((200, 200, 3), dtype=np.uint8)
+        candidate_boxes = [("knife", 0.88, [10, 10, 50, 50])]
+        threat = self.detector.evaluate_threat(frame, candidate_boxes)
+        self.assertIsNotNone(threat)
+        self.assertEqual(threat["threat_class"], "Knife")
+        self.assertGreaterEqual(threat["confidence"], 0.80)
+
 
 if __name__ == "__main__":
     unittest.main()

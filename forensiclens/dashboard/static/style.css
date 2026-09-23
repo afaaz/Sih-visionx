@@ -4347,9 +4347,55 @@ button, input[type="button"], input[type="submit"] {
   }
 }
 
+/* =========================================================================
+   LIVE CAMERA SURVEILLANCE & THREAT DETECTION ALERT STYLES
+   ========================================================================= */
 
+#live-threat-alert-banner {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s ease;
+}
 
+#threat-banner-active-box {
+  animation: threatPulse 1.8s infinite ease-in-out;
+}
 
+@keyframes threatPulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(239, 68, 68, 0.65);
+  }
+}
 
+#live-threat-bottom-box {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-radius: 4px;
+  animation: threatBottomAlert 0.3s ease-out;
+}
 
+@keyframes threatBottomAlert {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
+.live-event-card.threat-high,
+.live-detection-item.threat-item-high {
+  border-left: 3px solid #dc2626 !important;
+  background: rgba(220, 38, 38, 0.12) !important;
+}
+
+.badge-high {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}

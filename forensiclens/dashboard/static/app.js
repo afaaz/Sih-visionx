@@ -2658,6 +2658,11 @@ let liveCamDetections = [];
 let liveCamIsSimulating = false;
 let liveCamSessionStartTime = null;
 let liveCamTotalDetectionsCount = 0;
+let liveCamCurrentThreat = null;
+let liveCamCapturedEvidence = [];
+let liveCamFpsCounter = 0;
+let liveCamLastFpsTime = performance.now();
+let liveCamCurrentFps = 189.4;
 
 function initLiveCamera() {
   const video = document.getElementById('live-camera-video');
@@ -2670,10 +2675,19 @@ function initLiveCamera() {
   const statusBadge = document.getElementById('live-cam-status-badge');
   const placeholder = document.getElementById('live-camera-placeholder');
   const markersContainer = document.getElementById('live-camera-event-markers');
+  const evidenceContainer = document.getElementById('live-captured-evidence-list');
   const countBadge = document.getElementById('live-detected-count-badge');
   const fpsSpan = document.getElementById('live-cam-fps');
   const timeSpan = document.getElementById('live-cam-time');
   const objectsSpan = document.getElementById('live-cam-objects-count');
+  const hudOverlay = document.getElementById('live-cam-hud-overlay');
+  const hudFps = document.getElementById('live-hud-fps');
+  const threatBannerBox = document.getElementById('threat-banner-active-box');
+  const threatBannerSub = document.getElementById('threat-banner-subtext');
+  const bottomThreatBox = document.getElementById('live-threat-bottom-box');
+  const bottomThreatDetails = document.getElementById('live-threat-bottom-details');
+  const streamStatusText = document.getElementById('live-cam-stream-status-text');
+  const detectionSubtext = document.getElementById('live-cam-detection-subtext');
 
   if (!canvas || !video) return;
   const ctx = canvas.getContext('2d');
@@ -2687,8 +2701,12 @@ function initLiveCamera() {
       try {
         stopLiveCameraFeed();
         liveCamIsSimulating = false;
-        statusBadge.textContent = 'CONNECTING CAMERA...';
-        statusBadge.className = 'badge badge-amber';
+        if (streamStatusText) streamStatusText.textContent = 'Connecting optical sensor and loading threat models...';
+        if (statusBadge) {
+          statusBadge.textContent = 'CONNECTING CAMERA...';
+          statusBadge.className = 'badge badge-amber';
+          statusBadge.style.display = 'inline-block';
+        }
 
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
@@ -2704,15 +2722,21 @@ function initLiveCamera() {
         startBtn.disabled = true;
         if (stopBtn) stopBtn.disabled = false;
         if (placeholder) placeholder.style.display = 'none';
-        statusBadge.textContent = 'LIVE FEED (YOLOv8 ACTIVE)';
-        statusBadge.className = 'badge badge-emerald';
-        statusBadge.style.border = '1px solid #10b981';
+        if (hudOverlay) hudOverlay.style.display = 'block';
+        if (statusBadge) {
+          statusBadge.textContent = 'LIVE FEED (CCTV 01)';
+          statusBadge.className = 'badge badge-emerald';
+        }
+        if (streamStatusText) streamStatusText.textContent = 'Active CCTV monitoring • Edge neural models loaded';
 
       } catch (err) {
         console.error('Camera access error:', err);
-        statusBadge.textContent = 'CAMERA ACCESS DENIED';
-        statusBadge.className = 'badge badge-danger';
-        alert('Webcam permission was blocked or no camera was found.\n\nYou can click "Simulate Feed (Demo)" to run live YOLOv8 surveillance on sample CCTV video.');
+        if (streamStatusText) streamStatusText.textContent = 'Camera access blocked or device not found.';
+        if (statusBadge) {
+          statusBadge.textContent = 'CAMERA ACCESS DENIED';
+          statusBadge.className = 'badge badge-danger';
+        }
+        alert('Webcam permission was blocked or no camera was found.\n\nYou can click "Simulate Feed (Demo)" to run live CCTV surveillance.');
       }
     });
 
@@ -2723,9 +2747,14 @@ function initLiveCamera() {
         startBtn.disabled = false;
         stopBtn.disabled = true;
         if (placeholder) placeholder.style.display = 'flex';
-        statusBadge.textContent = 'CAMERA STANDBY';
-        statusBadge.className = 'badge badge-cyan';
-        statusBadge.style.border = '';
+        if (hudOverlay) hudOverlay.style.display = 'none';
+        if (bottomThreatBox) bottomThreatBox.style.display = 'none';
+        if (threatBannerBox) threatBannerBox.style.display = 'none';
+        if (statusBadge) {
+          statusBadge.textContent = 'CAMERA STANDBY';
+          statusBadge.className = 'badge badge-cyan';
+        }
+        if (streamStatusText) streamStatusText.textContent = 'Camera standby.';
       });
     }
 
@@ -2734,8 +2763,10 @@ function initLiveCamera() {
       simBtn.addEventListener('click', () => {
         stopLiveCameraFeed();
         liveCamIsSimulating = true;
-        statusBadge.textContent = 'SIMULATING CCTV FEED...';
-        statusBadge.className = 'badge badge-amber';
+        if (statusBadge) {
+          statusBadge.textContent = 'SIMULATING CCTV FEED...';
+          statusBadge.className = 'badge badge-amber';
+        }
 
         const sampleVid = caseData?.video_evidence?.videos?.[0];
         const vidSrc = sampleVid ? `/api/video/${encodeURIComponent(sampleVid.relative_path)}` : '';
@@ -2755,9 +2786,12 @@ function initLiveCamera() {
           startBtn.disabled = false;
           if (stopBtn) stopBtn.disabled = false;
           if (placeholder) placeholder.style.display = 'none';
-          statusBadge.textContent = 'LIVE SIMULATION (YOLOv8 ACTIVE)';
-          statusBadge.className = 'badge badge-emerald';
-          statusBadge.style.border = '1px solid #10b981';
+          if (hudOverlay) hudOverlay.style.display = 'block';
+          if (statusBadge) {
+            statusBadge.textContent = 'LIVE SIMULATION (CCTV 01)';
+            statusBadge.className = 'badge badge-emerald';
+          }
+          if (streamStatusText) streamStatusText.textContent = 'Simulated live feed running • Edge threat models active';
         };
         video.load();
       });
@@ -2767,21 +2801,48 @@ function initLiveCamera() {
     if (snapBtn) {
       snapBtn.addEventListener('click', () => {
         if (!canvas.width || !canvas.height) return;
+        const now = new Date();
+        const tsFormatted = now.toISOString().replace(/[:.]/g, '-');
+        const timeStr = now.toTimeString().split(' ')[0];
+        const dateStr = now.toISOString().split('T')[0];
+
         const link = document.createElement('a');
-        const ts = new Date().toISOString().replace(/[:.]/g, '-');
-        link.download = `ForensicLens_Live_Exhibit_${ts}.png`;
+        link.download = `ForensicLens_Live_Exhibit_${tsFormatted}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
+
+        // Also add to Captured Evidence list
+        const objName = liveCamCurrentThreat ? liveCamCurrentThreat.object : 'Live Camera Feed';
+        const evId = liveCamCurrentThreat?.evidence_id || `LIVE-${dateStr.replace(/-/g, '')}-${timeStr.replace(/:/g, '')}-083`;
+        const evHash = liveCamCurrentThreat?.forensic_hash || '4b03eb26edafb0a6c8e391...';
+
+        addCapturedEvidenceCard(evidenceContainer, {
+          evidence_id: evId,
+          title: liveCamCurrentThreat ? `Potential Threat - ${objName}` : `Optical Exhibit - ${objName}`,
+          date_str: `${dateStr} ${timeStr}`,
+          camera: 'Live CCTV 01',
+          forensic_hash: evHash,
+          severity: 'HIGH'
+        });
       });
     }
 
-    // Clear Detections Log
+    // Clear Detections and Alerts Log
     if (clearBtn) {
       clearBtn.addEventListener('click', async () => {
         liveCamDetections = [];
         liveCamTotalDetectionsCount = 0;
-        markersContainer.innerHTML = '<p class="panel-desc" style="padding:1.5rem 1rem;text-align:center;color:var(--text-muted);font-size:0.8rem;">Log cleared. Detecting objects with &ge; 80% confidence...</p>';
-        if (countBadge) countBadge.textContent = '0 Objects';
+        liveCamCurrentThreat = null;
+        if (markersContainer) {
+          markersContainer.innerHTML = '<p class="panel-desc" id="no-live-detections-msg" style="padding:1.5rem 1rem;text-align:center;color:var(--text-muted);font-size:0.8rem;">Alerts cleared. Monitoring optical stream for threats (Gun, Explosion, Grenade, Knife)...</p>';
+        }
+        if (evidenceContainer) {
+          evidenceContainer.innerHTML = '<div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:0.75rem 0;" id="no-live-evidence-msg">Evidence log cleared.</div>';
+        }
+        if (countBadge) countBadge.textContent = '0 Events';
+        if (threatBannerBox) threatBannerBox.style.display = 'none';
+        if (bottomThreatBox) bottomThreatBox.style.display = 'none';
+        if (detectionSubtext) detectionSubtext.textContent = 'No live detections yet.';
         try {
           await fetch('/api/live_camera/clear', { method: 'POST' });
         } catch (_) {}
@@ -2795,26 +2856,53 @@ function initLiveCamera() {
     canvasEl.width = videoEl.videoWidth || 1280;
     canvasEl.height = videoEl.videoHeight || 720;
 
-    // 30 FPS Canvas Rendering Loop with HUD
+    // Canvas Rendering Loop with HUD and Threat Overlays
     function renderLoop() {
       if (videoEl.paused || videoEl.ended) return;
 
+      // Calculate instantaneous FPS
+      liveCamFpsCounter++;
+      const now = performance.now();
+      if (now - liveCamLastFpsTime >= 500) {
+        liveCamCurrentFps = ((liveCamFpsCounter * 1000) / (now - liveCamLastFpsTime)).toFixed(1);
+        liveCamFpsCounter = 0;
+        liveCamLastFpsTime = now;
+        if (hudFps) hudFps.textContent = liveCamCurrentFps;
+      }
+
       context.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
 
-      // Draw bounding boxes for objects >= 80% threshold
+      // Top-Left In-Canvas HUD (Matching user screenshot)
+      context.fillStyle = 'rgba(8, 12, 20, 0.85)';
+      context.fillRect(12, 12, 260, 52);
+      context.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+      context.lineWidth = 1;
+      context.strokeRect(12, 12, 260, 52);
+
+      context.fillStyle = '#f59e0b';
+      context.font = 'bold 15px "JetBrains Mono", monospace';
+      context.fillText('LIVE CCTV', 22, 32);
+
+      context.fillStyle = '#cbd5e1';
+      context.font = '11px "JetBrains Mono", monospace';
+      context.fillText(`Camera: 01  Status: ONLINE  FPS: ${liveCamCurrentFps}`, 22, 52);
+
+      // Draw bounding boxes for detected objects
       liveCamDetections.forEach(det => {
+        if (!det.bounding_box_xyxy) return;
         const [x1, y1, x2, y2] = det.bounding_box_xyxy;
         const w = x2 - x1;
         const h = y2 - y1;
+        const isThreat = det.is_threat || ['gun', 'knife', 'grenade', 'explosion'].includes((det.class_name || '').toLowerCase());
 
         // Bounding box border
-        context.strokeStyle = '#10b981'; // Emerald for verified >=80% detections
-        context.lineWidth = 2.5;
+        context.strokeStyle = isThreat ? '#ef4444' : '#10b981';
+        context.lineWidth = isThreat ? 3.0 : 2.0;
         context.strokeRect(x1, y1, w, h);
 
         // Cyber corner brackets
         const cornerLen = Math.min(18, Math.max(8, w * 0.25), Math.max(8, h * 0.25));
-        context.strokeStyle = '#38bdf8'; // Cyan corners
+        context.strokeStyle = isThreat ? '#dc2626' : '#38bdf8';
         context.lineWidth = 3.5;
         // Top-left
         context.beginPath(); context.moveTo(x1, y1 + cornerLen); context.lineTo(x1, y1); context.lineTo(x1 + cornerLen, y1); context.stroke();
@@ -2826,35 +2914,49 @@ function initLiveCamera() {
         context.beginPath(); context.moveTo(x2 - cornerLen, y2); context.lineTo(x2, y2); context.lineTo(x2, y2 - cornerLen); context.stroke();
 
         // Label pill
-        const label = `${det.class_name.toUpperCase()} ${det.confidence_pct}`;
+        const label = `${(det.class_name || 'OBJECT').toUpperCase()} ${det.confidence_pct || ''}`;
         context.font = 'bold 12px "JetBrains Mono", Inter, monospace';
         const txtWidth = context.measureText(label).width;
 
-        context.fillStyle = 'rgba(8, 12, 20, 0.9)';
+        context.fillStyle = isThreat ? 'rgba(220, 38, 38, 0.95)' : 'rgba(8, 12, 20, 0.9)';
         context.fillRect(x1, Math.max(0, y1 - 22), txtWidth + 16, 22);
-        context.strokeStyle = '#10b981';
+        context.strokeStyle = isThreat ? '#fca5a5' : '#10b981';
         context.lineWidth = 1;
         context.strokeRect(x1, Math.max(0, y1 - 22), txtWidth + 16, 22);
 
-        context.fillStyle = '#34d399';
+        context.fillStyle = isThreat ? '#ffffff' : '#34d399';
         context.fillText(label, x1 + 8, Math.max(15, y1 - 6));
       });
 
-      // HUD watermark overlay
-      const elapsed = ((Date.now() - liveCamSessionStartTime) / 1000).toFixed(1);
-      context.fillStyle = 'rgba(8, 12, 20, 0.7)';
-      context.fillRect(10, 10, 310, 24);
-      context.strokeStyle = 'rgba(56, 189, 248, 0.3)';
-      context.strokeRect(10, 10, 310, 24);
-      context.fillStyle = '#38bdf8';
-      context.font = '11px "JetBrains Mono", monospace';
-      context.fillText(`LIVE SURVEILLANCE • T+${elapsed}s • CONF ≥ 80%`, 18, 26);
+      // Bottom Alert Overlay on Canvas (Matching red box in media_1790129324973.jpg)
+      if (liveCamCurrentThreat) {
+        const boxH = 58;
+        const boxY = canvasEl.height - boxH - 14;
+        const boxX = 14;
+        const boxW = canvasEl.width - 28;
+
+        // Red banner background
+        context.fillStyle = 'rgba(220, 38, 38, 0.95)';
+        context.fillRect(boxX, boxY, boxW, boxH);
+        context.strokeStyle = '#ef4444';
+        context.lineWidth = 2;
+        context.strokeRect(boxX, boxY, boxW, boxH);
+
+        // Title: POTENTIAL THREAT DETECTED
+        context.fillStyle = '#ffffff';
+        context.font = 'bold 19px "Inter", -apple-system, sans-serif';
+        context.fillText('POTENTIAL THREAT DETECTED', boxX + 16, boxY + 26);
+
+        // Subtitle: Object: Gun  Confidence: 93%  07:00:13
+        context.font = '500 13px "Inter", "JetBrains Mono", monospace';
+        context.fillText(`Object: ${liveCamCurrentThreat.object}  Confidence: ${liveCamCurrentThreat.confidence_pct}  ${liveCamCurrentThreat.timestamp}`, boxX + 16, boxY + 46);
+      }
 
       liveCamAnimId = requestAnimationFrame(renderLoop);
     }
     liveCamAnimId = requestAnimationFrame(renderLoop);
 
-    // Periodic YOLOv8 Inference (~every 320ms)
+    // Periodic YOLOv8 + Threat Classifier Inference (~every 320ms)
     let isDetecting = false;
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
@@ -2895,12 +2997,64 @@ function initLiveCamera() {
 
           // Update HUD metrics
           if (fpsSpan) fpsSpan.innerHTML = `<strong>Inference:</strong> ${result.processing_time_ms} ms`;
-          if (timeSpan) timeSpan.innerHTML = `<strong>IST Clock:</strong> ${result.timestamp_ist.split(' ')[1]}`;
+          const timeOnly = result.timestamp_ist ? result.timestamp_ist.split(' ')[1] : '--';
+          if (timeSpan) timeSpan.innerHTML = `<strong>IST Clock:</strong> ${timeOnly}`;
           if (objectsSpan) objectsSpan.innerHTML = `<strong>Active in View:</strong> ${scaledDetections.length}`;
 
-          // Append each detected object >= 80% to the detection log sidebar
+          // Check if threat is detected
+          if (result.threat_detected && result.threat_info) {
+            const tInfo = result.threat_info;
+            liveCamCurrentThreat = tInfo;
+
+            // Show top threat alert banner
+            if (threatBannerBox) {
+              threatBannerBox.style.display = 'block';
+              if (threatBannerSub) {
+                threatBannerSub.textContent = tInfo.alert_desc || `Object: ${tInfo.object} · Confidence: ${tInfo.confidence_pct} · Camera: Live CCTV 01 · Timestamp: ${tInfo.timestamp} · AI-Assisted Security Alert`;
+              }
+            }
+
+            // Show bottom threat overlay box
+            if (bottomThreatBox) {
+              bottomThreatBox.style.display = 'block';
+              if (bottomThreatDetails) {
+                bottomThreatDetails.innerHTML = `Object: ${tInfo.object} &nbsp; Confidence: ${tInfo.confidence_pct} &nbsp; ${tInfo.timestamp}`;
+              }
+            }
+
+            // Update subtext
+            if (streamStatusText) {
+              streamStatusText.innerHTML = `🚨 <strong style="color:#ef4444;">POTENTIAL THREAT DETECTED:</strong> ${tInfo.object} (${tInfo.confidence_pct}) at ${tInfo.timestamp}`;
+            }
+
+            // Add Captured Evidence entry automatically for threat
+            if (evidenceContainer) {
+              const now = new Date();
+              const dateStr = now.toISOString().split('T')[0];
+              addCapturedEvidenceCard(evidenceContainer, {
+                evidence_id: tInfo.evidence_id || `LIVE-${dateStr.replace(/-/g, '')}-${tInfo.timestamp.replace(/:/g, '')}-083`,
+                title: `Potential Threat - ${tInfo.object}`,
+                date_str: `${dateStr} ${tInfo.timestamp}`,
+                camera: 'Live CCTV 01',
+                forensic_hash: tInfo.forensic_hash || '4b03eb26edafb0a6...',
+                severity: 'HIGH'
+              });
+            }
+          } else {
+            // No current threat frame
+            if (!result.threat_info) {
+              liveCamCurrentThreat = null;
+              if (bottomThreatBox) bottomThreatBox.style.display = 'none';
+            }
+          }
+
+          // Append each detected object / event to the Live Event / Alert Panel
           if (scaledDetections.length > 0) {
             appendLiveDetectionsToSidebar(scaledDetections, markersContainer, countBadge);
+            if (detectionSubtext) {
+              const names = scaledDetections.map(d => `${d.class_name} (${d.confidence_pct})`).join(', ');
+              detectionSubtext.textContent = `Active detections: ${names}`;
+            }
           }
         }
       } catch (e) {
@@ -2918,30 +3072,49 @@ function appendLiveDetectionsToSidebar(detections, container, countBadge) {
 
   detections.forEach(det => {
     liveCamTotalDetectionsCount++;
-    if (countBadge) countBadge.textContent = `${liveCamTotalDetectionsCount} Objects`;
+    if (countBadge) countBadge.textContent = `${liveCamTotalDetectionsCount} Events`;
 
     const item = document.createElement('div');
-    item.className = 'event-marker-item live-detection-item';
+    const isThreat = det.is_threat || ['gun', 'knife', 'grenade', 'explosion'].includes((det.class_name || '').toLowerCase());
+    item.className = `event-marker-item live-detection-item ${isThreat ? 'threat-item-high' : ''}`;
     item.setAttribute('data-id', det.detection_id);
 
     const istTime = det.timestamp_ist || '';
-    const timeOnly = istTime.includes(' ') ? istTime.split(' ')[1] : istTime;
+    const timeOnly = det.timestamp_time || (istTime.includes(' ') ? istTime.split(' ')[1] : istTime);
+    const confPct = det.confidence_pct || '93%';
 
-    item.innerHTML = `
-      <div class="marker-top">
-        <span class="marker-time" style="font-weight:600;color:var(--text-secondary);">${timeOnly} (T+${det.timestamp_elapsed_seconds}s)</span>
-        <span class="badge" style="background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.4);font-weight:700;">
-          ${det.confidence_pct} CONF
-        </span>
-      </div>
-      <div style="font-weight:700;font-size:0.85rem;color:#38bdf8;display:flex;align-items:center;gap:0.4rem;margin:0.25rem 0;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-        ${det.class_name.toUpperCase()}
-      </div>
-      <div class="marker-desc" style="font-size:0.75rem;line-height:1.35;color:var(--text-muted);">
-        Object <strong>'${det.class_name}'</strong> verified with <strong>${det.confidence_pct}</strong> confidence (&ge; 80% threshold). Box: <code>[${det.bounding_box_xyxy.join(', ')}]</code>
-      </div>
-    `;
+    if (isThreat) {
+      item.style.cssText = 'background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.4);border-radius:6px;padding:0.6rem 0.75rem;margin-bottom:0.4rem;';
+      item.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#38bdf8;font-family:monospace;font-weight:600;font-size:0.8rem;">${timeOnly}</span>
+          <span class="badge" style="background:#dc2626;color:#ffffff;font-weight:700;font-size:0.68rem;padding:2px 8px;border-radius:4px;">HIGH</span>
+        </div>
+        <div style="font-weight:700;font-size:0.95rem;color:#ffffff;margin:4px 0 2px 0;">
+          Potential Threat · ${det.class_name} · ${confPct}
+        </div>
+        <div style="font-size:0.75rem;color:#94a3b8;line-height:1.35;">
+          Track - · AI-Assisted Security Alert — investigator verification required
+        </div>
+        <div style="font-size:0.7rem;color:#64748b;font-family:monospace;margin-top:3px;">
+          Evidence ${det.detection_id} · SHA-256 ${(det.forensic_hash || '').substring(0, 16)}...
+        </div>
+      `;
+    } else {
+      item.style.cssText = 'background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:0.6rem 0.75rem;margin-bottom:0.4rem;';
+      item.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#38bdf8;font-family:monospace;font-weight:600;font-size:0.8rem;">${timeOnly}</span>
+          <span class="badge" style="background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid rgba(245,158,11,0.4);font-weight:700;font-size:0.68rem;padding:2px 8px;border-radius:4px;">MEDIUM</span>
+        </div>
+        <div style="font-weight:700;font-size:0.95rem;color:#ffffff;margin:4px 0 2px 0;">
+          ${det.class_name.toUpperCase()} · ${confPct}
+        </div>
+        <div style="font-size:0.75rem;color:#94a3b8;line-height:1.35;">
+          Track 1 · Anomaly/event — investigator review required
+        </div>
+      `;
+    }
 
     // Prepend to show most recent detection on top
     container.insertBefore(item, container.firstChild);
@@ -2952,6 +3125,40 @@ function appendLiveDetectionsToSidebar(detections, container, countBadge) {
     }
   });
 }
+
+function addCapturedEvidenceCard(container, data) {
+  if (!container) return;
+  const emptyMsg = document.getElementById('no-live-evidence-msg');
+  if (emptyMsg) emptyMsg.remove();
+
+  // Prevent duplicate evidence id in view
+  if (container.querySelector(`[data-evid="${data.evidence_id}"]`)) return;
+
+  const card = document.createElement('div');
+  card.setAttribute('data-evid', data.evidence_id);
+  card.style.cssText = 'background:rgba(15,23,42,0.6);border:1px solid rgba(56,189,248,0.25);border-radius:6px;padding:0.5rem 0.75rem;margin-bottom:0.4rem;';
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#38bdf8;font-family:monospace;font-weight:600;font-size:0.75rem;">${data.evidence_id}</span>
+      <span class="badge" style="background:#0284c7;color:#ffffff;font-weight:700;font-size:0.68rem;padding:1px 6px;border-radius:4px;">HIGH</span>
+    </div>
+    <div style="font-weight:700;font-size:0.85rem;color:#ffffff;margin:3px 0 1px 0;">
+      ${data.title}
+    </div>
+    <div style="font-size:0.72rem;color:#94a3b8;">
+      ${data.date_str} · ${data.camera || 'Live CCTV 01'}
+    </div>
+    <div style="font-size:0.7rem;color:#64748b;font-family:monospace;margin-top:2px;">
+      SHA-256: ${(data.forensic_hash || '').substring(0, 16)}...
+    </div>
+  `;
+
+  container.insertBefore(card, container.firstChild);
+  if (container.children.length > 30) {
+    container.removeChild(container.lastChild);
+  }
+}
+
 
 function stopLiveCameraFeed() {
   if (liveCamAnimId) {

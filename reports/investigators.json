@@ -557,5 +557,83 @@
     "password_hash": "edb49080e372851df54ddd78b89d0b200a5dbbbcbe6dc32c0af5d51481231fba",
     "created_at": "2026-09-23T00:00:00Z",
     "is_active": true
+  },
+  {
+    "id": "inv-c185cd8e",
+    "email": "officer_972ecf@police.gov.in",
+    "name": "Special Officer Kapoor",
+    "badge_id": "BADGE-99A5",
+    "agency": "State Anti-Terror Squad",
+    "clearance": "Level 3 - Lead Forensic Examiner",
+    "role": "investigator",
+    "salt": "81c00dbc0330bab355593887e8fb65c0",
+    "password_hash": "93ca73fa71528ddba182a15c96b0342d0f78dd94eceb455e9cb7625a53839b4b",
+    "created_at": "2026-09-23T00:00:00Z",
+    "is_active": true
+  },
+  {
+    "id": "usr-7d846464",
+    "email": "surv_d13d60@surveillance.gov.in",
+    "name": "Operator Vikram",
+    "badge_id": "CAM-2856",
+    "agency": "Metro CCTV Monitoring Cell",
+    "clearance": "Field Surveillance Operator",
+    "role": "user_investigator",
+    "salt": "9398c018e56a5ad2623699fdc18b2a52",
+    "password_hash": "2f7568f6f1bd9fbd66b028fad2c78cec8180fb5b14b5ffbef955282625e27359",
+    "created_at": "2026-09-23T00:00:00Z",
+    "is_active": true
+  },
+  {
+    "id": "usr-3d9fac91",
+    "email": "operator_6ebb38@surveillance.gov.in",
+    "name": "Operator Sneha Rao",
+    "badge_id": "CAM-C42A",
+    "agency": "CCTV Surveillance Monitoring Cell",
+    "clearance": "Field Surveillance Operator",
+    "role": "user_investigator",
+    "salt": "d148f55e054f5dcff5b940028b811d9b",
+    "password_hash": "1d9f2e34562053bf8bb678db42d876004733c17b83593f148d1252156fc0806b",
+    "created_at": "2026-09-23T00:00:00Z",
+    "is_active": true
+  },
+  {
+    "id": "inv-aa2dee56",
+    "email": "officer_4bf16d@police.gov.in",
+    "name": "Special Officer Kapoor",
+    "badge_id": "BADGE-A286",
+    "agency": "State Anti-Terror Squad",
+    "clearance": "Level 3 - Lead Forensic Examiner",
+    "role": "investigator",
+    "salt": "f74757e97bf885e23b98adf2e788836d",
+    "password_hash": "c35df86d054ab9e30b252220dcf091bbfdec623fd39eceb8bd521e816c1c4720",
+    "created_at": "2026-09-23T00:00:00Z",
+    "is_active": true
+  },
+  {
+    "id": "usr-db050832",
+    "email": "surv_fd0dcb@surveillance.gov.in",
+    "name": "Operator Vikram",
+    "badge_id": "CAM-669E",
+    "agency": "Metro CCTV Monitoring Cell",
+    "clearance": "Field Surveillance Operator",
+    "role": "user_investigator",
+    "salt": "0f18d2221239ee7e0da151b67acf4d08",
+    "password_hash": "f620f27d441a7e35c5998d8df62d961f926c171b8ecbc0efdbfc846c9583b2fc",
+    "created_at": "2026-09-23T00:00:00Z",
+    "is_active": true
+  },
+  {
+    "id": "usr-38e51ef1",
+    "email": "operator_cca510@surveillance.gov.in",
+    "name": "Operator Sneha Rao",
+    "badge_id": "CAM-CCA8",
+    "agency": "CCTV Surveillance Monitoring Cell",
+    "clearance": "Field Surveillance Operator",
+    "role": "user_investigator",
+    "salt": "35114ed41bd868aa2734d24ed82ae2ba",
+    "password_hash": "abc82fa30a626023744291c18aed18dc651146717f243f88c3ed39b39b2e6087",
+    "created_at": "2026-09-23T00:00:00Z",
+    "is_active": true
   }
 ]

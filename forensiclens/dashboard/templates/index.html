@@ -1257,48 +1257,77 @@
 
       <!-- TAB: LIVE CAMERA SURVEILLANCE -->
       <section class="tab-pane" id="pane-live-camera">
+        <!-- TOP THREAT ALERT BANNER -->
+        <div id="live-threat-alert-banner" class="threat-alert-banner" style="margin-bottom:1rem;padding:0.75rem 1rem;background:rgba(15,23,42,0.9);border:1px solid rgba(56,189,248,0.25);border-radius:var(--radius-md);line-height:1.45;">
+          <div style="font-size:0.78rem;color:#94a3b8;margin-bottom:0.25rem;">
+            Threat model reused from local file. Supported classes: Gun, explosion, grenade, knife. Phone-screen demo is supported. Investigator verification is required
+          </div>
+          <div id="threat-banner-active-box" style="display:none;background:rgba(220,38,38,0.18);border:1px solid #ef4444;border-radius:6px;padding:0.5rem 0.75rem;margin-top:0.35rem;">
+            <div style="font-size:1.05rem;font-weight:800;color:#ffffff;letter-spacing:0.02em;display:flex;align-items:center;gap:0.4rem;">
+              <span>🚨</span> <span>POTENTIAL THREAT DETECTED</span>
+            </div>
+            <div id="threat-banner-subtext" style="font-size:0.82rem;color:#e2e8f0;margin-top:0.25rem;">
+              Object: Gun · Confidence: 93% · Camera: Live CCTV 01 · Timestamp: --:--:-- · AI-Assisted Security Alert
+            </div>
+          </div>
+        </div>
+
         <div class="video-workspace-grid">
           <div class="glass-panel video-player-card">
-            <div class="panel-header">
+            <div class="panel-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;">
               <div>
-                <h2>Live Camera Surveillance</h2>
-                <p class="panel-desc">Real-time optical feed with edge YOLOv8 neural detection &bull; Strict 80% threshold</p>
+                <h2 style="margin:0 0 0.2rem 0;">Live Camera Stream</h2>
+                <p class="panel-desc" style="margin:0;">Source: 0 &bull; Live CCTV 01</p>
               </div>
               <div class="table-controls" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
-                <span class="badge" id="live-cam-threshold-badge" style="background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.5);font-weight:700;">
-                  THRESHOLD &ge; 80%
+                <span class="badge badge-cyan" id="live-threat-classes-badge" style="background:rgba(14,165,233,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);font-size:0.75rem;font-weight:600;padding:0.3rem 0.65rem;border-radius:9999px;">
+                  Threat classes: Gun, explosion, grenade, knife
                 </span>
-                <span class="badge badge-cyan" id="live-cam-status-badge">CAMERA STANDBY</span>
+                <span class="badge badge-cyan" id="live-cam-status-badge" style="display:none;">CAMERA STANDBY</span>
               </div>
             </div>
 
             <div class="form-row" style="margin-bottom:0.75rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-              <button id="btn-start-live-cam" class="btn btn-primary" style="display:flex;align-items:center;gap:0.4rem;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                <span>Start Live Camera</span>
+              <button id="btn-start-live-cam" class="btn btn-primary" style="display:flex;align-items:center;gap:0.4rem;font-weight:700;">
+                <span>START LIVE CCTV</span>
               </button>
-              <button id="btn-stop-live-cam" class="btn btn-secondary" style="display:flex;align-items:center;gap:0.4rem;" disabled>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                <span>Stop Camera</span>
+              <button id="btn-stop-live-cam" class="btn btn-secondary" style="display:flex;align-items:center;gap:0.4rem;font-weight:700;" disabled>
+                <span>STOP LIVE CCTV</span>
               </button>
-              <button id="btn-simulate-live-cam" class="btn btn-secondary" style="display:flex;align-items:center;gap:0.4rem;" title="Simulate live detection on sample CCTV video">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg>
+              <button id="btn-snapshot-live-cam" class="btn btn-secondary" style="display:flex;align-items:center;gap:0.4rem;font-weight:700;" title="Capture forensic evidence snapshot">
+                <span>CAPTURE EVIDENCE</span>
+              </button>
+              <button id="btn-clear-live-events" class="btn btn-secondary" style="display:flex;align-items:center;gap:0.4rem;font-weight:700;">
+                <span>CLEAR ALERTS</span>
+              </button>
+              <button id="btn-simulate-live-cam" class="btn btn-secondary" style="display:none;" title="Simulate live detection on sample CCTV video">
                 <span>Simulate Feed (Demo)</span>
-              </button>
-              <button id="btn-snapshot-live-cam" class="btn btn-secondary" style="display:flex;align-items:center;gap:0.4rem;" title="Capture forensic evidence snapshot">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <span>Capture Exhibit</span>
-              </button>
-              <button id="btn-clear-live-events" class="btn btn-secondary" style="display:flex;align-items:center;gap:0.4rem;">
-                <span>Clear Log</span>
               </button>
             </div>
 
-            <div class="video-container" id="live-cam-container" style="position:relative;background:#000000;overflow:hidden;border-radius:var(--radius-md);border:1px solid rgba(56,189,248,0.25);">
+            <div class="video-container" id="live-cam-container" style="position:relative;background:#000000;overflow:hidden;border-radius:var(--radius-md);border:1px solid rgba(56,189,248,0.25);min-height:360px;">
               <!-- Hidden video element capturing WebRTC stream -->
               <video id="live-camera-video" playsinline autoplay muted style="display:none;"></video>
               <!-- Live Canvas rendering feed and bounding boxes -->
               <canvas id="live-camera-canvas" style="width:100%;height:100%;object-fit:contain;display:block;"></canvas>
+
+              <!-- Video Top-Left HUD -->
+              <div id="live-cam-hud-overlay" style="position:absolute;top:10px;left:10px;background:rgba(8,12,20,0.85);padding:0.4rem 0.65rem;border-radius:4px;border:1px solid rgba(245,158,11,0.4);font-family:'JetBrains Mono',monospace;z-index:3;pointer-events:none;display:none;">
+                <div style="font-weight:800;color:#f59e0b;font-size:0.85rem;letter-spacing:0.04em;">LIVE CCTV</div>
+                <div style="font-size:0.7rem;color:#cbd5e1;margin-top:2px;">
+                  Camera: 01 &nbsp; Status: <span style="color:#10b981;font-weight:700;">ONLINE</span> &nbsp; FPS: <span id="live-hud-fps">29.4</span>
+                </div>
+              </div>
+
+              <!-- Bottom Threat Alert Box (matching reference image) -->
+              <div id="live-threat-bottom-box" style="display:none;position:absolute;bottom:12px;left:12px;right:12px;background:#dc2626;color:#ffffff;padding:0.65rem 1rem;border-radius:4px;box-shadow:0 4px 15px rgba(220,38,38,0.5);z-index:5;pointer-events:none;">
+                <div style="font-size:1.15rem;font-weight:800;letter-spacing:0.03em;text-transform:uppercase;line-height:1.2;">
+                  POTENTIAL THREAT DETECTED
+                </div>
+                <div id="live-threat-bottom-details" style="font-size:0.85rem;font-weight:500;margin-top:3px;opacity:0.95;">
+                  Object: Gun &nbsp; Confidence: 93% &nbsp; 07:00:13
+                </div>
+              </div>
 
               <!-- Standby overlay banner -->
               <div id="live-camera-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:rgba(8,12,20,0.92);color:var(--text-muted);text-align:center;padding:2rem;z-index:4;">
@@ -1306,14 +1335,22 @@
                   <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                 </div>
                 <div>
-                  <h3 style="color:#ffffff;margin:0 0 0.35rem 0;font-size:1.05rem;">Live Camera Surveillance Standby</h3>
-                  <p style="font-size:0.82rem;max-width:440px;margin:0;line-height:1.4;color:var(--text-secondary);">Click <strong>"Start Live Camera"</strong> to activate your camera with real-time YOLOv8 neural detection (&ge; 80% threshold) or <strong>"Simulate Feed"</strong> to test on surveillance footage.</p>
+                  <h3 style="color:#ffffff;margin:0 0 0.35rem 0;font-size:1.05rem;">Live CCTV Surveillance Standby</h3>
+                  <p style="font-size:0.82rem;max-width:440px;margin:0;line-height:1.4;color:var(--text-secondary);">Click <strong>"START LIVE CCTV"</strong> to activate optical surveillance with real-time neural threat detection (Gun, Explosion, Grenade, Knife).</p>
                 </div>
               </div>
             </div>
 
+            <!-- Subtext under video -->
+            <div id="live-cam-stream-status" style="margin-top:0.5rem;font-size:0.8rem;color:#94a3b8;">
+              <span id="live-cam-stream-status-text">Starting camera and loading models...</span>
+            </div>
+            <div id="live-cam-detection-subtext" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
+              No live detections yet.
+            </div>
+
             <div class="video-metadata-bar" id="live-cam-meta-bar" style="margin-top:0.6rem;padding:0.45rem 0.75rem;background:rgba(15,23,42,0.75);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:0.75rem;display:flex;flex-wrap:wrap;gap:0.85rem;color:var(--text-secondary);">
-              <span><strong>Neural Engine:</strong> YOLOv8 Nano</span>
+              <span><strong>Neural Engine:</strong> YOLOv8 + ResNet Threat Classifier</span>
               <span><strong>Filter Policy:</strong> &ge; 80.0% Confidence Only</span>
               <span id="live-cam-fps"><strong>Inference:</strong> -- ms</span>
               <span id="live-cam-time"><strong>IST Clock:</strong> --</span>
@@ -1321,22 +1358,39 @@
             </div>
           </div>
 
-          <div class="glass-panel video-events-sidebar">
-            <div class="panel-header">
-              <div>
-                <h2>Detected Objects (&ge; 80%)</h2>
-                <p class="panel-desc" style="font-size:0.75rem;margin:0;">Only objects with 80%+ confidence</p>
+          <div class="glass-panel video-events-sidebar" style="display:flex;flex-direction:column;gap:1.25rem;">
+            <!-- Live Event / Alert Panel -->
+            <div>
+              <div class="panel-header" style="margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <h2 style="font-size:1rem;margin:0;">Live Event / Alert Panel</h2>
+                </div>
+                <span class="badge" id="live-detected-count-badge" style="background:#f59e0b;color:#000000;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:4px;">0 Events</span>
               </div>
-              <span class="badge badge-amber" id="live-detected-count-badge">0 Objects</span>
+              <div class="event-markers-list" id="live-camera-event-markers" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:0.5rem;">
+                <p class="panel-desc" id="no-live-detections-msg" style="padding:1.5rem 1rem;text-align:center;color:var(--text-muted);font-size:0.8rem;">
+                  No live events yet.
+                </p>
+              </div>
             </div>
-            <div class="event-markers-list" id="live-camera-event-markers">
-              <p class="panel-desc" id="no-live-detections-msg" style="padding:1.5rem 1rem;text-align:center;color:var(--text-muted);font-size:0.8rem;">
-                No objects detected yet. Start camera to detect objects with &ge; 80% confidence.
-              </p>
+
+            <!-- Captured Evidence -->
+            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:0.85rem;">
+              <div class="panel-header" style="margin-bottom:0.6rem;">
+                <div>
+                  <h2 style="font-size:1rem;margin:0;">Captured Evidence</h2>
+                </div>
+              </div>
+              <div id="live-captured-evidence-list" style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:0.5rem;">
+                <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;padding:0.75rem 0;" id="no-live-evidence-msg">
+                  No forensic evidence captured yet. Click CAPTURE EVIDENCE or detect high-severity threats.
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
+
 
       <!-- TAB 12: FORENSIC REPORT -->
       <section class="tab-pane" id="pane-report">
