@@ -369,12 +369,12 @@ def generate_html_report(report_data: dict[str, Any]) -> str:
             cells = [c.strip() for c in line.split("|")[1:-1]]
             if not in_table:
                 in_table = True
-                html_body.append("<table><thead><tr>" + "".join(f"<th>{c}</th>" for c in cells) + "</tr></thead><tbody>")
+                html_body.append('<div class="table-responsive"><table><thead><tr>' + "".join(f"<th>{c}</th>" for c in cells) + "</tr></thead><tbody>")
             else:
                 html_body.append("<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
         else:
             if in_table:
-                html_body.append("</tbody></table>")
+                html_body.append("</tbody></table></div>")
                 in_table = False
             if line.startswith("- "):
                 html_body.append(f"<li>{line[2:]}</li>")
@@ -386,7 +386,7 @@ def generate_html_report(report_data: dict[str, Any]) -> str:
                 html_body.append(f"<p>{line}</p>")
 
     if in_table:
-        html_body.append("</tbody></table>")
+        html_body.append("</tbody></table></div>")
 
     body_html = "\n".join(html_body)
 
@@ -394,6 +394,7 @@ def generate_html_report(report_data: dict[str, Any]) -> str:
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ForensicLens Case Report - {case_id}</title>
 <style>
   :root {{
@@ -404,25 +405,47 @@ def generate_html_report(report_data: dict[str, Any]) -> str:
     --border: #334155;
     --success: #10b981;
   }}
+  * {{ box-sizing: border-box; }}
   body {{
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
-    padding: 2rem;
+    padding: clamp(1rem, 3vw, 2rem);
     max-width: 1200px;
     margin: 0 auto;
+    word-break: break-word;
   }}
   h1, h2, h3 {{ color: #ffffff; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }}
-  h1 {{ color: var(--accent); }}
-  table {{ width: 100%; border-collapse: collapse; margin: 1rem 0; background: var(--card); border-radius: 8px; overflow: hidden; }}
-  th, td {{ padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; }}
+  h1 {{ color: var(--accent); font-size: clamp(1.4rem, 4vw, 2rem); }}
+  h2 {{ font-size: clamp(1.15rem, 3vw, 1.5rem); }}
+  h3 {{ font-size: clamp(1rem, 2.5vw, 1.25rem); }}
+  .table-responsive {{
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 1rem 0;
+  }}
+  table {{
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    margin: 0;
+    background: var(--card);
+    border-radius: 8px;
+    overflow: hidden;
+  }}
+  th, td {{ padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; font-size: clamp(0.75rem, 1.8vw, 0.9rem); }}
   th {{ background: #1e293b; color: #94a3b8; font-weight: 600; }}
-  code {{ background: #1e293b; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; color: #38bdf8; }}
-  pre {{ background: var(--card); padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid var(--border); }}
+  code {{ background: #1e293b; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; color: #38bdf8; font-size: 0.85em; word-break: break-all; }}
+  pre {{ background: var(--card); padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid var(--border); font-size: 0.85rem; }}
   blockquote {{ border-left: 4px solid var(--accent); padding-left: 1rem; margin: 1rem 0; color: #94a3b8; background: var(--card); padding: 0.75rem 1rem; border-radius: 4px; }}
   hr {{ border: 0; height: 1px; background: var(--border); margin: 2rem 0; }}
   .badge {{ display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold; background: var(--success); color: #fff; }}
+  @media (max-width: 600px) {{
+    body {{ padding: 0.75rem; }}
+    th, td {{ padding: 0.5rem 0.65rem; }}
+  }}
 </style>
 </head>
 <body>

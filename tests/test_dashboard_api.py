@@ -57,6 +57,28 @@ class DashboardAPITests(unittest.TestCase):
         self.assertEqual(resp_html.status_code, 200)
         self.assertEqual(resp_html.mimetype, "text/html")
 
+    def test_upload_format_validation(self) -> None:
+        import io
+        # Uploading an invalid file extension (e.g. .txt or .exe) must be rejected with 400
+        data = {
+            'videos': (io.BytesIO(b"malicious content"), 'malware.exe')
+        }
+        resp = self.client.post('/api/videos/upload', data=data, content_type='multipart/form-data')
+        self.assertEqual(resp.status_code, 400)
+        json_data = resp.get_json()
+        self.assertIn("error", json_data)
+        self.assertIn("Unsupported file format", json_data["error"])
+
+    def test_remove_video_validation_and_execution(self) -> None:
+        # Missing evidence_id
+        resp = self.client.post('/api/videos/remove', json={})
+        self.assertEqual(resp.status_code, 400)
+
+        # Non-existent evidence_id
+        resp = self.client.post('/api/videos/remove', json={"evidence_id": "non_existent_id_999"})
+        self.assertEqual(resp.status_code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -1,0 +1,64 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 5000,
+    "secret_key": "forensiclens-investigator-session-secret-2026",
+    "debug": false,
+    "no_browser": false
+  },
+  "paths": {
+    "base_dir": "C:\\Users\\Dell\\Desktop\\ForensicLens",
+    "evidence_root": "dataset/raw",
+    "video_root": "dataset/raw/video",
+    "reports_dir": "reports",
+    "models_dir": "models",
+    "case_workspace_file": "reports/case_workspace.json",
+    "current_report_file": "reports/forensic_case_report_CURRENT.json"
+  },
+  "video_intelligence": {
+    "model_name": "yolov8n.pt",
+    "confidence_threshold": 0.25,
+    "sampling_stride_frames": 5,
+    "frame_change_threshold": 0.12,
+    "tracker": "bytetrack.yaml",
+    "coco_target_classes": {
+      "0": "person",
+      "1": "bicycle",
+      "2": "car",
+      "3": "motorcycle",
+      "5": "bus",
+      "7": "truck"
+    }
+  },
+  "live_camera": {
+    "model_name": "yolov8n.pt",
+    "confidence_threshold": 0.8,
+    "threshold_percentage": "80%",
+    "target_fps": 30,
+    "inference_interval_ms": 320,
+    "input_resolution_width": 1280,
+    "input_resolution_height": 720
+  },
+  "forensic_events": {
+    "anomaly_score_threshold": 0.65,
+    "prolonged_presence_seconds": 10.0,
+    "min_motion_displacement_pixels": 30.0
+  },
+  "correlation": {
+    "temporal_proximity_window_seconds": 15.0,
+    "cross_camera_window_seconds": 30.0
+  },
+  "usb_monitor": {
+    "poll_interval_seconds": 1.0,
+    "simulation_watch_path": "dataset/usb_test",
+    "max_history_events": 500,
+    "auto_start": true
+  },
+  "compliance": {
+    "timezone_name": "Asia/Kolkata",
+    "timezone_offset": "UTC+05:30",
+    "legal_framework": "Section 65B Indian Evidence Act (Certificate of Electronic Evidence)",
+    "iso_standard": "ISO/IEC 27037 (Guidelines for Digital Evidence Handling)",
+    "hash_algorithm": "SHA-256"
+  }
+}

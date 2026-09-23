@@ -6,7 +6,7 @@ ForensicLens is an investigator-first, vendor-neutral CCTV/DVR/NVR evidence-anal
 
 1. Ingested source files are hashed and held read-only.
 2. Video intelligence detects/tracks people and vehicles, then derives review events.
-3. The **Investigation Command** page runs hash verification, creates AI-assisted alerts, and executes a conservative authenticity-risk screen.
+3. Automated hash verification, AI-assisted alerts, and conservative authenticity-risk screening protect evidence integrity.
 4. An investigator confirms or rejects findings and records case notes.
 5. Track search returns class/time candidates only; it never claims identity.
 6. A privacy-sharing action creates a hashed, full-frame-blurred *derived* video; the original stays untouched.
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 python dashboard.py
 ```
 
-Open http://127.0.0.1:5000, then choose **Investigation Command** and press **Run Investigation**. The first full analysis may take time on CPU because it uses YOLOv8.
+Open http://127.0.0.1:5000 to explore the dashboard. The first full analysis may take time on CPU because it uses YOLOv8.
 
 ### One-command hackathon demo
 
@@ -41,7 +41,7 @@ The included sample case contains a VIRAT surveillance video and image exhibits 
 python run_hackathon_demo.py
 ```
 
-This starts the dashboard with the included sample case. For the strongest live demonstration: open **Investigation Command**, click **Run Investigation**, review one alert, save a note, then export the report.
+This starts the dashboard with the included sample case. For the strongest live demonstration: review findings in **Forensic Events**, save an investigator note, and export the report.
 
 ### Add Camera 2–4 feeds
 
@@ -80,7 +80,7 @@ The complete two-minute narration is in [HACKATHON_PITCH.md](HACKATHON_PITCH.md)
 Start the dashboard and capture your team’s final visuals before submission. Recommended shots:
 
 1. **Case Overview** — evidence counts and integrity status.
-2. **Investigation Command** — completed hash verification, alerts, and authenticity-risk screen.
+2. **Video Intelligence** — synchronized multi-camera feed and event markers.
 3. **Forensic Events** — an investigator’s confirmed/rejected decision and case note.
 4. **Forensic Report** — the final export controls and traceability summary.
 

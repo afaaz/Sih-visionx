@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any
 
-from flask import Flask, jsonify, render_template, request, send_file, Response
+from flask import Flask, jsonify, redirect, render_template, request, Response, send_file, session, url_for
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 
 from forensiclens.analyzer import build_evidence_report, write_report
 from forensiclens.correlation.graph import build_evidence_graph
+from forensiclens.dashboard.auth import AuthManager
 from forensiclens.query.engine import GroundedQueryEngine
 from forensiclens.reporting.generator import generate_html_report, generate_markdown_report
 from forensiclens.sanitization import ProtectedEvidenceError, is_path_protected, sanitize_test_file
@@ -20,6 +21,7 @@ from forensiclens.case_workflow import CaseWorkspace, authenticity_risk, build_a
 from forensiclens.preservation import verify_evidence
 from forensiclens.video_evidence import VIDEO_EXTENSIONS
 from forensiclens.usb_monitor import usb_monitor
+from forensiclens.live_camera import live_camera_detector
 
 
 def create_app(report_data: dict[str, Any] | None = None, evidence_root: Path | str = "dataset/raw", video_root: Path | str = "dataset/raw/video") -> Flask:
@@ -28,7 +30,9 @@ def create_app(report_data: dict[str, Any] | None = None, evidence_root: Path | 
         template_folder=str(Path(__file__).parent / "templates"),
         static_folder=str(Path(__file__).parent / "static"),
     )
+    app.secret_key = "forensiclens-investigator-session-secret-2026"
     CORS(app)
+    auth_manager = AuthManager()
 
     # In-memory case state
     state: dict[str, Any] = {
@@ -102,6 +106,103 @@ def create_app(report_data: dict[str, Any] | None = None, evidence_root: Path | 
             event["investigator_review"] = workspace.get("reviews", {}).get(event.get("event_id"))
         return report
 
+    @app.route("/login")
+    def login_page() -> str:
+        role = request.args.get("role", "investigator").lower()
+        if "user" in role or "cam" in role or "surveillance" in role:
+            portal = "user_investigator"
+        else:
+            portal = "investigator"
+        return render_template("login.html", mode="login", portal=portal)
+
+    @app.route("/login/investigator")
+    def login_investigator_page() -> str:
+        return render_template("login.html", mode="login", portal="investigator")
+
+    @app.route("/login/user")
+    @app.route("/user-login")
+    def login_user_page() -> str:
+        return render_template("login.html", mode="login", portal="user_investigator")
+
+    @app.route("/signup")
+    def signup_page() -> str:
+        role = request.args.get("role", "investigator").lower()
+        portal = "user_investigator" if ("user" in role or "cam" in role or "surveillance" in role) else "investigator"
+        return render_template("login.html", mode="signup", portal=portal)
+
+    @app.route("/logout")
+    def logout_redirect() -> Any:
+        session.pop("user", None)
+        return redirect(url_for("login_page"))
+
+    @app.route("/api/auth/login", methods=["POST"])
+    def api_login() -> Any:
+        payload = request.get_json(silent=True) or {}
+        identifier = str(payload.get("identifier") or payload.get("email") or payload.get("badge_id") or "").strip()
+        password = str(payload.get("password") or "")
+        if not identifier or not password:
+            return jsonify({"status": "error", "error": "Identifier (email or badge ID) and password are required."}), 400
+        user = auth_manager.authenticate(identifier, password)
+        if not user:
+            return jsonify({"status": "error", "error": "Invalid credentials. Please verify your Email/Badge ID and Password."}), 401
+        session["user"] = user
+        role_label = "User Surveillance Interface" if user.get("role") == "user_investigator" else "Investigator Interface"
+        return jsonify({"status": "success", "user": user, "message": f"Welcome back, {user['name']} ({role_label})."}), 200
+
+    @app.route("/api/auth/signup", methods=["POST"])
+    def api_signup() -> Any:
+        payload = request.get_json(silent=True) or {}
+        name = str(payload.get("name") or "").strip()
+        email = str(payload.get("email") or "").strip()
+        badge_id = str(payload.get("badge_id") or "").strip()
+        password = str(payload.get("password") or "")
+        clearance = str(payload.get("clearance") or "").strip()
+        role = str(payload.get("role") or "").strip()
+        agency = str(payload.get("agency") or "").strip()
+
+        if "user" in role.lower() or "surveillance" in role.lower() or "surveillance" in clearance.lower():
+            role = "user_investigator"
+            if not agency:
+                agency = "CCTV Surveillance Monitoring Cell"
+            if not clearance:
+                clearance = "Field Surveillance Operator"
+        else:
+            role = "investigator"
+            if not agency:
+                agency = "State Police Cyber Command"
+            if not clearance:
+                clearance = "Level 2 - Senior Forensic Analyst"
+
+        try:
+            user = auth_manager.register(
+                name=name,
+                email=email,
+                badge_id=badge_id,
+                password=password,
+                agency=agency,
+                clearance=clearance,
+                role=role,
+            )
+            session["user"] = user
+            role_label = "User Investigator" if user.get("role") == "user_investigator" else "Investigator"
+            return jsonify({"status": "success", "user": user, "message": f"{role_label} account created for {user['name']}."}), 201
+        except ValueError as ve:
+            return jsonify({"status": "error", "error": str(ve)}), 400
+        except Exception as e:
+            return jsonify({"status": "error", "error": f"Registration failed: {e}"}), 500
+
+    @app.route("/api/auth/logout", methods=["POST"])
+    def api_logout() -> Any:
+        session.pop("user", None)
+        return jsonify({"status": "success", "message": "Investigator session ended safely."})
+
+    @app.route("/api/auth/me", methods=["GET"])
+    def api_me() -> Any:
+        user = session.get("user")
+        if user:
+            return jsonify({"authenticated": True, "user": user})
+        return jsonify({"authenticated": False, "user": None})
+
     @app.route("/")
     def index() -> str:
         _ensure_report()
@@ -114,29 +215,82 @@ def create_app(report_data: dict[str, Any] | None = None, evidence_root: Path | 
         report["erasure_certificates"] = state["erasure_certificates"]
         return jsonify(_enrich_live_state(report))
 
+    ALLOWED_INTAKE_EXTENSIONS = {".mp3", ".mp4", ".png", ".jpg", ".jpeg"}
+
     @app.route("/api/videos/upload", methods=["POST"])
     def upload_videos() -> Any:
-        """Safely intake new video evidence as separate files; existing evidence is never overwritten."""
+        """Safely intake new evidence files (MP3, MP4, PNG, JPG); existing evidence is never overwritten."""
         files = request.files.getlist("videos")
         if not files:
-            return jsonify({"error": "Select one or more video files."}), 400
+            return jsonify({"error": "Select one or more files."}), 400
         intake_dir = state["video_root"].resolve()
         intake_dir.mkdir(parents=True, exist_ok=True)
         added: list[dict[str, Any]] = []
         for incoming in files:
             filename = secure_filename(incoming.filename or "")
-            if not filename or Path(filename).suffix.lower() not in VIDEO_EXTENSIONS:
-                return jsonify({"error": f"Unsupported video: {incoming.filename}"}), 400
+            ext = Path(filename).suffix.lower()
+            if not filename or ext not in ALLOWED_INTAKE_EXTENSIONS:
+                return jsonify({
+                    "error": f"Unsupported file format: '{incoming.filename}'. Only MP3, MP4, PNG, and JPG files are permitted."
+                }), 400
             destination = intake_dir / filename
             if destination.exists():
-                return jsonify({"error": f"A video named {filename} already exists. Rename it before upload to preserve evidence provenance."}), 409
+                return jsonify({"error": f"A file named {filename} already exists. Rename it before upload to preserve evidence provenance."}), 409
             incoming.save(destination)
             from forensiclens.preservation import capture_integrity
             integrity = capture_integrity(destination)
             added.append({"filename": filename, "size_bytes": integrity.get("size_bytes"), "sha256": integrity.get("sha256"), "status": "intake_hash_recorded"})
         state["report"] = None
         state["rebuild_requested"] = True
-        return jsonify({"status": "uploaded", "videos": added, "next_step": "Run multi-feed analysis to detect events across all videos."}), 201
+        return jsonify({"status": "uploaded", "videos": added, "next_step": "Run multi-feed analysis to detect events across all feeds."}), 201
+
+    @app.route("/api/videos/remove", methods=["POST"])
+    def remove_video() -> Any:
+        """Safely remove a video feed from the active investigation case."""
+        payload = request.get_json(silent=True) or {}
+        evidence_id = payload.get("evidence_id") or payload.get("filename")
+        if not evidence_id:
+            return jsonify({"error": "No evidence_id or filename provided"}), 400
+
+        report = _ensure_report()
+        videos = report.get("video_evidence", {}).get("videos", [])
+        target_video = next((v for v in videos if v.get("evidence_id") == evidence_id or v.get("filename") == evidence_id), None)
+        if not target_video:
+            return jsonify({"error": f"Video feed '{evidence_id}' not found in active case"}), 404
+
+        removed_id = target_video.get("evidence_id")
+        removed_filename = target_video.get("filename")
+
+        # Filter out from videos list
+        report["video_evidence"]["videos"] = [v for v in videos if v.get("evidence_id") != removed_id]
+
+        # Filter out from evidence_files if present
+        if "evidence_files" in report:
+            report["evidence_files"] = [f for f in report["evidence_files"] if f.get("evidence_id") != removed_id and f.get("filename") != removed_filename]
+
+        # Filter out forensic events belonging to this video
+        if "forensic_events" in report:
+            report["forensic_events"] = [e for e in report["forensic_events"] if e.get("parent_evidence_id") != removed_id]
+
+        # Filter out tracks belonging to this video
+        if "track_summary" in report:
+            report["track_summary"] = [t for t in report["track_summary"] if t.get("parent_evidence_id") != removed_id]
+
+        # Rebuild evidence graph with remaining evidence
+        from forensiclens.correlation.graph import build_evidence_graph
+        report["evidence_graph"] = build_evidence_graph(report, report.get("correlations", []))
+
+        # Persist updated report to disk
+        write_report(report, Path("reports/forensic_case_report_CURRENT.json"))
+        state["report"] = report
+
+        return jsonify({
+            "status": "success",
+            "message": f"Video feed '{removed_filename}' ({removed_id}) removed successfully",
+            "removed_id": removed_id,
+            "remaining_count": len(report["video_evidence"]["videos"]),
+            "case": _enrich_live_state(report)
+        })
 
     @app.route("/api/case/reanalyze", methods=["POST"])
     def reanalyze_case() -> Any:
@@ -259,10 +413,27 @@ def create_app(report_data: dict[str, Any] | None = None, evidence_root: Path | 
                 "certificate": cert_dict,
             })
         except ProtectedEvidenceError as pe:
+            audit_id = f"CERT-REFUSAL-{datetime.now(tz=timezone.utc).strftime('%Y%m%d%H%M%S')}"
+            resolved_target = str(target_path.resolve()) if target_path.exists() else str(target_path)
+            refusal_cert = {
+                "certificate_id": audit_id,
+                "certificate_type": "SOURCE_PROTECTION_REFUSAL_AUDIT_CERTIFICATE",
+                "target_path": resolved_target,
+                "protection_policy": "STRICT_IMMUTABILITY_POLICY_ACTIVE",
+                "verification_status": "SOURCE_PROTECTION_ENFORCED_SUCCESSFULLY",
+                "action_taken": "SANITIZATION_STRICTLY_BLOCKED",
+                "source_evidence_status": "PRESERVED_INTACT_AND_UNMODIFIED",
+                "operator_id": operator_id,
+                "timestamp_utc": now_utc(),
+                "compliance_standard": "SIH PS 26150 / ISO 27037 Digital Evidence Preservation",
+                "refusal_reason": str(pe),
+            }
             return jsonify({
                 "status": "rejected_protected",
-                "error": str(pe),
+                "test_result": "PASSED - SOURCE PROTECTION ENFORCED",
                 "message": "PROTECTED EVIDENCE: ForensicLens refused to sanitize source evidence.",
+                "certificate": refusal_cert,
+                "refusal_reason": str(pe),
             }), 403
         except Exception as e:
             return jsonify({"status": "error", "error": str(e)}), 400
@@ -385,6 +556,43 @@ def create_app(report_data: dict[str, Any] | None = None, evidence_root: Path | 
                 headers={"Content-Disposition": f"attachment;filename=usb_forensic_audit_{timestamp}.csv"},
             )
         return jsonify({"error": "Unsupported format. Use json, markdown, or csv."}), 400
+
+    # =========================================================================
+    # LIVE CAMERA SURVEILLANCE & REAL-TIME OBJECT DETECTION API ENDPOINTS
+    # =========================================================================
+
+    @app.route("/api/live_camera/status", methods=["GET"])
+    def get_live_camera_status() -> Any:
+        """Return status, active model, and 80% confidence threshold metrics."""
+        return jsonify(live_camera_detector.get_status())
+
+    @app.route("/api/live_camera/detect", methods=["POST"])
+    def detect_live_camera_frame() -> Any:
+        """Perform YOLO neural detection on an image frame, filtering strictly to >= 80% confidence."""
+        payload = request.get_json(silent=True) or {}
+        image_data = payload.get("image")
+        if not image_data:
+            return jsonify({"status": "error", "error": "No image data provided", "detections": []}), 400
+
+        result = live_camera_detector.process_frame_base64(image_data)
+        return jsonify(result)
+
+    @app.route("/api/live_camera/events", methods=["GET"])
+    def get_live_camera_events() -> Any:
+        """Return history of objects detected with >= 80% confidence."""
+        return jsonify({
+            "status": "success",
+            "threshold": 0.80,
+            "count": len(live_camera_detector.detection_history),
+            "events": live_camera_detector.detection_history,
+            "monitor": live_camera_detector.get_status(),
+        })
+
+    @app.route("/api/live_camera/clear", methods=["POST"])
+    def clear_live_camera_events() -> Any:
+        """Clear detection history log."""
+        live_camera_detector.clear_history()
+        return jsonify({"status": "success", "message": "Detection history cleared"})
 
     # Automatically start USB monitoring when app is created
     usb_monitor.start()
