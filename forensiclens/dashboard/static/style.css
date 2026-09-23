@@ -3935,6 +3935,19 @@ button, input[type="button"], input[type="submit"] {
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
 }
 
+.quad-mode-btn.active.admin {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.32), rgba(217, 70, 239, 0.32));
+  border-color: rgba(192, 132, 252, 0.75);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+}
+
+.auth-tri-modes-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px;
+}
+
 /* Dual Portal Switcher (Investigator Interface vs User Investigator) */
 .portal-selector-bar {
   display: grid;
@@ -4026,6 +4039,12 @@ button, input[type="button"], input[type="submit"] {
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.4);
   color: #34d399;
+}
+
+.portal-badge.admin {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  color: #c084fc;
 }
 
 .auth-demo-btn.user-demo {

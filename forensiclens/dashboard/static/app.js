@@ -2211,8 +2211,7 @@ function initAuthentication() {
   const authOverlay = document.getElementById('auth-gateway-overlay');
   if (!authOverlay) return;
 
-  const gwBtnUserSignup = document.getElementById('gw-btn-mode-user-signup');
-  const gwBtnInvSignup = document.getElementById('gw-btn-mode-investigator-signup');
+  const gwBtnModeAdmin = document.getElementById('gw-btn-mode-admin');
   const gwBtnUserLogin = document.getElementById('gw-btn-mode-user-login');
   const gwBtnInvLogin = document.getElementById('gw-btn-mode-investigator-login');
 
@@ -2222,7 +2221,7 @@ function initAuthentication() {
   const gwAuthModeDesc = document.getElementById('gw-auth-mode-desc');
 
   const loginForm = document.getElementById('gateway-login-form');
-  const signupForm = document.getElementById('gateway-signup-form');
+  const adminForm = document.getElementById('gateway-admin-form');
   const alertBox = document.getElementById('gateway-auth-alert');
   const alertText = document.getElementById('gateway-auth-alert-text');
   const demoBtn = document.getElementById('gw-btn-demo');
@@ -2231,9 +2230,21 @@ function initAuthentication() {
   const idLabel = document.getElementById('gw-login-id-label');
   const passInput = document.getElementById('gw-login-pass');
   const btnLoginText = document.getElementById('gw-btn-login-text');
-  const signupRole = document.getElementById('gw-signup-role');
+
+  // Admin form elements
+  const gwAdminRoleUser = document.getElementById('gw-admin-role-user');
+  const gwAdminRoleInv = document.getElementById('gw-admin-role-inv');
+  const gwAdminTargetEmail = document.getElementById('gw-admin-target-email');
+  const gwAdminTargetEmailLabel = document.getElementById('gw-admin-target-email-label');
+  const gwAdminTargetPass = document.getElementById('gw-admin-target-password');
+  const gwAdminTargetPassLabel = document.getElementById('gw-admin-target-password-label');
+  const gwAdminMasterKey = document.getElementById('gw-admin-master-key');
+  const gwBtnAdminSubmitText = document.getElementById('gw-btn-admin-submit-text');
+  const gwAdminRosterUser = document.getElementById('gw-admin-roster-user');
+  const gwAdminRosterInv = document.getElementById('gw-admin-roster-inv');
 
   let gwCurrentMode = 'investigator_login';
+  let gwAdminRole = 'user_investigator';
 
   function showAuthAlert(msg, isError = true) {
     if (!alertBox || !alertText) return;
@@ -2246,98 +2257,98 @@ function initAuthentication() {
     if (alertBox) alertBox.style.display = 'none';
   }
 
+  async function refreshGwAdminRoster() {
+    try {
+      const res = await fetch('/api/auth/admin/accounts');
+      if (res.ok) {
+        const data = await res.json();
+        if (gwAdminRosterUser && data.user) {
+          gwAdminRosterUser.textContent = data.user.email;
+        }
+        if (gwAdminRosterInv && data.investigator) {
+          gwAdminRosterInv.textContent = data.investigator.email;
+        }
+      }
+    } catch (err) {
+      console.warn('Could not refresh gateway admin roster:', err);
+    }
+  }
+
+  function setGwAdminRole(role) {
+    gwAdminRole = role;
+    if (role === 'user_investigator') {
+      if (gwAdminRoleUser) {
+        gwAdminRoleUser.style.background = 'rgba(16,185,129,0.25)';
+        gwAdminRoleUser.style.borderColor = '#10b981';
+        gwAdminRoleUser.style.color = '#ffffff';
+      }
+      if (gwAdminRoleInv) {
+        gwAdminRoleInv.style.background = 'rgba(15,23,42,0.6)';
+        gwAdminRoleInv.style.borderColor = 'rgba(255,255,255,0.12)';
+        gwAdminRoleInv.style.color = '#94a3b8';
+      }
+      if (gwAdminTargetEmailLabel) gwAdminTargetEmailLabel.textContent = 'Authorized User Email';
+      if (gwAdminTargetPassLabel) gwAdminTargetPassLabel.textContent = 'Authorized User Password';
+      if (gwAdminTargetEmail) {
+        gwAdminTargetEmail.placeholder = 'e.g. user@forensiclens.gov.in';
+        if (!gwAdminTargetEmail.value || gwAdminTargetEmail.value === 'investigator@cbi.gov.in') {
+          gwAdminTargetEmail.value = 'user@forensiclens.gov.in';
+        }
+      }
+      if (gwAdminTargetPass) {
+        gwAdminTargetPass.placeholder = 'Set user password (min 6 chars)';
+        if (!gwAdminTargetPass.value || gwAdminTargetPass.value === 'Investigator@2026') {
+          gwAdminTargetPass.value = 'User@2026';
+        }
+      }
+    } else {
+      if (gwAdminRoleInv) {
+        gwAdminRoleInv.style.background = 'rgba(14,165,233,0.25)';
+        gwAdminRoleInv.style.borderColor = '#38bdf8';
+        gwAdminRoleInv.style.color = '#ffffff';
+      }
+      if (gwAdminRoleUser) {
+        gwAdminRoleUser.style.background = 'rgba(15,23,42,0.6)';
+        gwAdminRoleUser.style.borderColor = 'rgba(255,255,255,0.12)';
+        gwAdminRoleUser.style.color = '#94a3b8';
+      }
+      if (gwAdminTargetEmailLabel) gwAdminTargetEmailLabel.textContent = 'Authorized Investigator Email';
+      if (gwAdminTargetPassLabel) gwAdminTargetPassLabel.textContent = 'Authorized Investigator Password';
+      if (gwAdminTargetEmail) {
+        gwAdminTargetEmail.placeholder = 'e.g. investigator@cbi.gov.in';
+        if (!gwAdminTargetEmail.value || gwAdminTargetEmail.value === 'user@forensiclens.gov.in') {
+          gwAdminTargetEmail.value = 'investigator@cbi.gov.in';
+        }
+      }
+      if (gwAdminTargetPass) {
+        gwAdminTargetPass.placeholder = 'Set investigator password (min 6 chars)';
+        if (!gwAdminTargetPass.value || gwAdminTargetPass.value === 'User@2026') {
+          gwAdminTargetPass.value = 'Investigator@2026';
+        }
+      }
+    }
+  }
+
+  if (gwAdminRoleUser) gwAdminRoleUser.addEventListener('click', () => setGwAdminRole('user_investigator'));
+  if (gwAdminRoleInv) gwAdminRoleInv.addEventListener('click', () => setGwAdminRole('investigator'));
+
   function setGatewayAuthMode(mode) {
     gwCurrentMode = mode;
     hideAuthAlert();
 
-    [gwBtnUserSignup, gwBtnInvSignup, gwBtnUserLogin, gwBtnInvLogin].forEach(b => {
+    [gwBtnModeAdmin, gwBtnUserLogin, gwBtnInvLogin].forEach(b => {
       if (b) b.classList.remove('active');
     });
 
-    if (mode === 'user_signup') {
-      if (gwBtnUserSignup) gwBtnUserSignup.classList.add('active');
-      if (portalBadge) portalBadge.className = 'portal-badge user';
-      if (portalBadgeText) portalBadgeText.textContent = 'FIELD SURVEILLANCE OPERATOR PORTAL';
-      if (gwAuthModeTitle) gwAuthModeTitle.textContent = 'User Sign Up (usersignup)';
-      if (gwAuthModeDesc) gwAuthModeDesc.textContent = 'Enter Full Name, Email, and Password to Register';
+    if (mode === 'admin') {
+      if (gwBtnModeAdmin) gwBtnModeAdmin.classList.add('active');
+      if (portalBadge) portalBadge.className = 'portal-badge admin';
+      if (portalBadgeText) portalBadgeText.textContent = 'ADMIN CREDENTIAL PROVISIONING PORTAL';
+      if (gwAuthModeTitle) gwAuthModeTitle.textContent = 'Admin Authorization Field';
+      if (gwAuthModeDesc) gwAuthModeDesc.textContent = 'Only Admin can configure email and password for User and Investigator access';
       if (loginForm) loginForm.style.display = 'none';
-      if (signupForm) signupForm.style.display = 'block';
-
-      // Show ONLY Full Name, Email, and Password
-      const grpRole = document.getElementById('gw-signup-group-role');
-      const grpAgency = document.getElementById('gw-signup-group-agency');
-      const grpBadge = document.getElementById('gw-signup-group-badge');
-      const grpClearance = document.getElementById('gw-signup-group-clearance');
-      const grpName = document.getElementById('gw-signup-group-name');
-      const grpEmail = document.getElementById('gw-signup-group-email');
-      const grpPass = document.getElementById('gw-signup-group-password');
-
-      if (grpRole) grpRole.style.display = 'none';
-      if (grpAgency) grpAgency.style.display = 'none';
-      if (grpBadge) grpBadge.style.display = 'none';
-      if (grpClearance) grpClearance.style.display = 'none';
-      if (grpName) grpName.style.display = 'block';
-      if (grpEmail) grpEmail.style.display = 'block';
-      if (grpPass) grpPass.style.display = 'block';
-
-      const agencyInp = document.getElementById('gw-signup-agency');
-      const badgeInp = document.getElementById('gw-signup-badge');
-      if (agencyInp) agencyInp.required = false;
-      if (badgeInp) badgeInp.required = false;
-
-      const emailLbl = document.getElementById('gw-signup-email-label');
-      const passLbl = document.getElementById('gw-signup-pass-label');
-      const submitBtnText = document.getElementById('gw-btn-signup-text');
-      if (emailLbl) emailLbl.textContent = 'Email Address';
-      if (passLbl) passLbl.textContent = 'Password (Min 6 chars)';
-      if (submitBtnText) submitBtnText.textContent = 'Register & Enter Live Camera';
-
-      if (signupRole) signupRole.value = 'user_investigator';
-      if (agencyInp) agencyInp.value = 'CCTV Surveillance Monitoring Cell';
-      const clearEl = document.getElementById('gw-signup-clearance');
-      if (clearEl) clearEl.value = 'Field Surveillance Operator';
-    } else if (mode === 'investigator_signup') {
-      if (gwBtnInvSignup) gwBtnInvSignup.classList.add('active');
-      if (portalBadge) portalBadge.className = 'portal-badge investigator';
-      if (portalBadgeText) portalBadgeText.textContent = 'INVESTIGATOR ACCESS GATEWAY';
-      if (gwAuthModeTitle) gwAuthModeTitle.textContent = 'Investigator Sign Up (investigatorsignup)';
-      if (gwAuthModeDesc) gwAuthModeDesc.textContent = 'Register Authorized Forensic Examiner for Full Case Investigation Suite';
-      if (loginForm) loginForm.style.display = 'none';
-      if (signupForm) signupForm.style.display = 'block';
-
-      // Show all forensic registration fields
-      const grpRole = document.getElementById('gw-signup-group-role');
-      const grpAgency = document.getElementById('gw-signup-group-agency');
-      const grpBadge = document.getElementById('gw-signup-group-badge');
-      const grpClearance = document.getElementById('gw-signup-group-clearance');
-      const grpName = document.getElementById('gw-signup-group-name');
-      const grpEmail = document.getElementById('gw-signup-group-email');
-      const grpPass = document.getElementById('gw-signup-group-password');
-
-      if (grpRole) grpRole.style.display = 'block';
-      if (grpAgency) grpAgency.style.display = 'block';
-      if (grpBadge) grpBadge.style.display = 'block';
-      if (grpClearance) grpClearance.style.display = 'block';
-      if (grpName) grpName.style.display = 'block';
-      if (grpEmail) grpEmail.style.display = 'block';
-      if (grpPass) grpPass.style.display = 'block';
-
-      const agencyInp = document.getElementById('gw-signup-agency');
-      const badgeInp = document.getElementById('gw-signup-badge');
-      if (agencyInp) agencyInp.required = true;
-      if (badgeInp) badgeInp.required = true;
-
-      const emailLbl = document.getElementById('gw-signup-email-label');
-      const passLbl = document.getElementById('gw-signup-pass-label');
-      const submitBtnText = document.getElementById('gw-btn-signup-text');
-      if (emailLbl) emailLbl.textContent = 'Official Email Address';
-      if (passLbl) passLbl.textContent = 'Secure Password (Min 6 chars)';
-      if (submitBtnText) submitBtnText.textContent = 'Register & Enter Workstation';
-
-      if (signupRole) signupRole.value = 'investigator';
-      if (agencyInp) agencyInp.value = 'State Police Cyber Division';
-      const clearEl = document.getElementById('gw-signup-clearance');
-      if (clearEl) clearEl.value = 'Level 2 - Senior Forensic Analyst';
+      if (adminForm) adminForm.style.display = 'block';
+      refreshGwAdminRoster();
     } else if (mode === 'user_login') {
       if (gwBtnUserLogin) gwBtnUserLogin.classList.add('active');
       if (portalBadge) portalBadge.className = 'portal-badge user';
@@ -2345,17 +2356,20 @@ function initAuthentication() {
       if (gwAuthModeTitle) gwAuthModeTitle.textContent = 'User Login (userlogin)';
       if (gwAuthModeDesc) gwAuthModeDesc.textContent = 'Live Camera Surveillance & Real-Time Monitoring';
       if (loginForm) loginForm.style.display = 'block';
-      if (signupForm) signupForm.style.display = 'none';
+      if (adminForm) adminForm.style.display = 'none';
       if (idLabel) idLabel.textContent = 'Surveillance Email or Operator ID';
       if (idInput) {
         idInput.placeholder = 'e.g. user@forensiclens.gov.in or CAM-26150';
-        idInput.value = 'user@forensiclens.gov.in';
+        if (!idInput.value || idInput.value === 'investigator@cbi.gov.in') {
+          idInput.value = 'user@forensiclens.gov.in';
+        }
       }
-      if (passInput) passInput.value = 'User@2026';
+      if (passInput && (!passInput.value || passInput.value === 'Investigator@2026')) {
+        passInput.value = 'User@2026';
+      }
       if (btnLoginText) btnLoginText.textContent = 'Sign In to Live Camera Surveillance';
       if (demoBtn) demoBtn.className = 'auth-demo-btn user-demo';
       if (demoBtnText) demoBtnText.textContent = '📹 1-Click Demo Sign In (Operator P. Patel • Field Surveillance)';
-      if (signupRole) signupRole.value = 'user_investigator';
     } else {
       // investigator_login
       gwCurrentMode = 'investigator_login';
@@ -2365,22 +2379,24 @@ function initAuthentication() {
       if (gwAuthModeTitle) gwAuthModeTitle.textContent = 'Investigator Login (investigatorlogin • Investigator Sign In)';
       if (gwAuthModeDesc) gwAuthModeDesc.textContent = 'Case Overview, Video Intelligence, Timeline, Graph & Section 65B Report';
       if (loginForm) loginForm.style.display = 'block';
-      if (signupForm) signupForm.style.display = 'none';
+      if (adminForm) adminForm.style.display = 'none';
       if (idLabel) idLabel.textContent = 'Official Email or Badge ID';
       if (idInput) {
         idInput.placeholder = 'e.g. investigator@cbi.gov.in or IND-26150';
-        idInput.value = 'investigator@cbi.gov.in';
+        if (!idInput.value || idInput.value === 'user@forensiclens.gov.in') {
+          idInput.value = 'investigator@cbi.gov.in';
+        }
       }
-      if (passInput) passInput.value = 'Investigator@2026';
+      if (passInput && (!passInput.value || passInput.value === 'User@2026')) {
+        passInput.value = 'Investigator@2026';
+      }
       if (btnLoginText) btnLoginText.textContent = 'Sign In to Workstation';
       if (demoBtn) demoBtn.className = 'auth-demo-btn';
       if (demoBtnText) demoBtnText.textContent = '⚡ 1-Click Demo Sign In (Insp. Sharma • CBI Lead)';
-      if (signupRole) signupRole.value = 'investigator';
     }
   }
 
-  if (gwBtnUserSignup) gwBtnUserSignup.addEventListener('click', () => setGatewayAuthMode('user_signup'));
-  if (gwBtnInvSignup) gwBtnInvSignup.addEventListener('click', () => setGatewayAuthMode('investigator_signup'));
+  if (gwBtnModeAdmin) gwBtnModeAdmin.addEventListener('click', () => setGatewayAuthMode('admin'));
   if (gwBtnUserLogin) gwBtnUserLogin.addEventListener('click', () => setGatewayAuthMode('user_login'));
   if (gwBtnInvLogin) gwBtnInvLogin.addEventListener('click', () => setGatewayAuthMode('investigator_login'));
 
@@ -2451,55 +2467,73 @@ function initAuthentication() {
   // Handle 1-Click Demo Login
   if (demoBtn) {
     demoBtn.addEventListener('click', () => {
-      if (gwCurrentMode === 'user_login' || gwCurrentMode === 'user_signup') {
-        setGatewayAuthMode('user_login');
-        if (idInput) idInput.value = 'user@forensiclens.gov.in';
+      if (gwCurrentMode === 'user_login') {
+        if (gwAdminRosterUser && gwAdminRosterUser.textContent) {
+          if (idInput) idInput.value = gwAdminRosterUser.textContent;
+        } else {
+          if (idInput) idInput.value = 'user@forensiclens.gov.in';
+        }
         if (passInput) passInput.value = 'User@2026';
       } else {
         setGatewayAuthMode('investigator_login');
-        if (idInput) idInput.value = 'investigator@cbi.gov.in';
+        if (gwAdminRosterInv && gwAdminRosterInv.textContent) {
+          if (idInput) idInput.value = gwAdminRosterInv.textContent;
+        } else {
+          if (idInput) idInput.value = 'investigator@cbi.gov.in';
+        }
         if (passInput) passInput.value = 'Investigator@2026';
       }
       if (loginForm) loginForm.dispatchEvent(new Event('submit'));
     });
   }
 
-  // Handle Signup submission
-  if (signupForm) {
-    signupForm.addEventListener('submit', async (e) => {
+  // Handle Admin Provisioning submission
+  if (adminForm) {
+    adminForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       hideAuthAlert();
-      const isUserMode = (gwCurrentMode === 'user_signup');
-      const role = isUserMode ? 'user_investigator' : (signupRole ? signupRole.value : 'investigator');
-      const name = document.getElementById('gw-signup-name')?.value.trim();
-      const agency = isUserMode ? 'CCTV Surveillance Monitoring Cell' : (document.getElementById('gw-signup-agency')?.value.trim() || 'State Police Cyber Division');
-      const badge_id = isUserMode ? '' : document.getElementById('gw-signup-badge')?.value.trim();
-      const email = document.getElementById('gw-signup-email')?.value.trim();
-      const clearance = isUserMode ? 'Field Surveillance Operator' : document.getElementById('gw-signup-clearance')?.value;
-      const password = document.getElementById('gw-signup-pass')?.value;
+      const role = gwAdminRole;
+      const email = gwAdminTargetEmail ? gwAdminTargetEmail.value.trim() : '';
+      const password = gwAdminTargetPass ? gwAdminTargetPass.value : '';
+      const admin_key = gwAdminMasterKey ? gwAdminMasterKey.value : '';
+
+      if (!email || !password) {
+        showAuthAlert('Please provide both authorized email and password.');
+        return;
+      }
 
       try {
-        const res = await fetch('/api/auth/signup', {
+        if (gwBtnAdminSubmitText) gwBtnAdminSubmitText.textContent = 'Authorizing & Updating...';
+        const res = await fetch('/api/auth/admin/provision', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, agency, badge_id, email, clearance, password, role }),
+          body: JSON.stringify({ role, email, password, admin_key }),
         });
         const data = await res.json();
         if (!res.ok) {
-          showAuthAlert(data.error || 'Registration failed.');
+          showAuthAlert(data.error || 'Admin authorization failed. Verify master key.');
+          if (gwBtnAdminSubmitText) gwBtnAdminSubmitText.textContent = 'Authorize & Issue Credentials';
           return;
         }
-        currentInvestigator = data.user;
-        localStorage.setItem('forensiclens_user', JSON.stringify(data.user));
-        applyInvestigatorProfile(currentInvestigator);
-        const roleLabel = currentInvestigator.role === 'user_investigator' ? 'User Interface (Live Camera Only)' : 'Investigator Interface';
-        showAuthAlert(`Account registered (${roleLabel})! Opening workstation...`, false);
+
+        const targetRoleName = role === 'user_investigator' ? 'User (Live Camera)' : 'Investigator';
+        showAuthAlert(`✓ Success! Admin authorized new credentials for ${targetRoleName} (${email}). Only this email and password can now be used to sign in!`, false);
+        if (gwBtnAdminSubmitText) gwBtnAdminSubmitText.textContent = 'Credentials Issued ✓';
         setTimeout(() => {
-          authOverlay.classList.add('hidden');
-          hideAuthAlert();
-        }, 600);
+          if (gwBtnAdminSubmitText) gwBtnAdminSubmitText.textContent = 'Authorize & Issue Credentials';
+        }, 3000);
+
+        if (role === 'user_investigator' && gwAdminRosterUser) {
+          gwAdminRosterUser.textContent = email;
+        } else if (role === 'investigator' && gwAdminRosterInv) {
+          gwAdminRosterInv.textContent = email;
+        }
+
+        if (idInput) idInput.value = email;
+        if (passInput) passInput.value = password;
       } catch (err) {
-        showAuthAlert('Unable to reach authentication server: ' + err.message);
+        showAuthAlert('Unable to reach server: ' + err.message);
+        if (gwBtnAdminSubmitText) gwBtnAdminSubmitText.textContent = 'Authorize & Issue Credentials';
       }
     });
   }

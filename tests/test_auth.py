@@ -18,7 +18,7 @@ class AuthTests(unittest.TestCase):
     def test_signup_page_renders(self) -> None:
         resp = self.client.get('/signup')
         self.assertEqual(resp.status_code, 200)
-        self.assertIn(b"Register", resp.data)
+        self.assertIn(b"Admin", resp.data)
 
     def test_default_investigator_login(self) -> None:
         resp = self.client.post('/api/auth/login', json={
@@ -195,6 +195,93 @@ class AuthTests(unittest.TestCase):
         })
         self.assertEqual(login_resp.status_code, 200)
         self.assertEqual(login_resp.get_json().get("user", {}).get("role"), "user_investigator")
+
+    def test_login_page_has_admin_field_and_no_signup_buttons(self) -> None:
+        """Verify signup buttons are removed and admin field is present."""
+        resp = self.client.get('/login')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b"btn-mode-admin", resp.data)
+        self.assertIn(b"btn-mode-user-login", resp.data)
+        self.assertIn(b"btn-mode-investigator-login", resp.data)
+        self.assertNotIn(b"btn-mode-user-signup", resp.data)
+        self.assertNotIn(b"btn-mode-investigator-signup", resp.data)
+
+    def test_admin_accounts_list(self) -> None:
+        """Test listing currently provisioned accounts."""
+        resp = self.client.get('/api/auth/admin/accounts')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertEqual(data.get("status"), "success")
+        self.assertIn("user", data)
+        self.assertIn("investigator", data)
+        self.assertIn("@", data["user"]["email"])
+        self.assertIn("@", data["investigator"]["email"])
+
+    def test_admin_provision_user_account(self) -> None:
+        """Only the admin can give the email and password, and only that works."""
+        import uuid
+        new_user_email = f"custom_user_{uuid.uuid4().hex[:6]}@police.gov.in"
+        new_user_pass = "SecureUserPass@999"
+
+        # Provision through admin endpoint
+        prov_resp = self.client.post('/api/auth/admin/provision', json={
+            "role": "user_investigator",
+            "email": new_user_email,
+            "password": new_user_pass,
+            "admin_key": "Admin@2026",
+        })
+        self.assertEqual(prov_resp.status_code, 200)
+        prov_data = prov_resp.get_json()
+        self.assertEqual(prov_data.get("status"), "success")
+        self.assertEqual(prov_data.get("user", {}).get("email"), new_user_email)
+
+        # Verify only this new email and password works to sign in
+        login_resp = self.client.post('/api/auth/login', json={
+            "identifier": new_user_email,
+            "password": new_user_pass,
+        })
+        self.assertEqual(login_resp.status_code, 200)
+        self.assertEqual(login_resp.get_json().get("user", {}).get("role"), "user_investigator")
+
+        # Wrong password must fail
+        wrong_pass_resp = self.client.post('/api/auth/login', json={
+            "identifier": new_user_email,
+            "password": "WrongPassword!",
+        })
+        self.assertEqual(wrong_pass_resp.status_code, 401)
+
+    def test_admin_provision_investigator_account(self) -> None:
+        """Admin provisions investigator credentials."""
+        import uuid
+        new_inv_email = f"custom_inv_{uuid.uuid4().hex[:6]}@cbi.gov.in"
+        new_inv_pass = "SecureInvPass@888"
+
+        prov_resp = self.client.post('/api/auth/admin/provision', json={
+            "role": "investigator",
+            "email": new_inv_email,
+            "password": new_inv_pass,
+            "admin_key": "Admin@2026",
+        })
+        self.assertEqual(prov_resp.status_code, 200)
+
+        # Login with newly provisioned investigator credentials
+        login_resp = self.client.post('/api/auth/login', json={
+            "identifier": new_inv_email,
+            "password": new_inv_pass,
+        })
+        self.assertEqual(login_resp.status_code, 200)
+        self.assertEqual(login_resp.get_json().get("user", {}).get("role"), "investigator")
+
+    def test_admin_provision_unauthorized_key(self) -> None:
+        """Admin provisioning fails when master key is invalid."""
+        resp = self.client.post('/api/auth/admin/provision', json={
+            "role": "investigator",
+            "email": "hacker@test.com",
+            "password": "hackedpassword",
+            "admin_key": "WrongMasterKey",
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Invalid Admin Master Key", resp.get_json().get("error", ""))
 
 
 if __name__ == "__main__":

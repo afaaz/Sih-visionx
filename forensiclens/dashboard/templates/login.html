@@ -301,21 +301,17 @@
     </div>
 
     <div class="auth-card">
-      <!-- 4 Auth Fields: User Sign Up, Investigator Sign Up, User Login, Investigator Login -->
-      <div class="auth-quad-modes-bar" id="auth-quad-modes-bar">
-        <button class="quad-mode-btn user usersignup" id="btn-mode-user-signup" type="button" data-mode="user_signup" data-auth-field="usersignup" title="User Sign Up">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><circle cx="19" cy="11" r="2"/></svg>
-          <span class="quad-mode-label">User Sign Up</span>
+      <!-- 3 Auth Fields: Admin, User Login, Investigator Login -->
+      <div class="auth-quad-modes-bar auth-tri-modes-bar" id="auth-quad-modes-bar">
+        <button class="quad-mode-btn admin" id="btn-mode-admin" type="button" data-mode="admin" title="Admin Credential Provisioning">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+          <span class="quad-mode-label">Admin</span>
         </button>
-        <button class="quad-mode-btn investigator investigatorsignup" id="btn-mode-investigator-signup" type="button" data-mode="investigator_signup" data-auth-field="investigatorsignup" title="Investigator Sign Up">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-          <span class="quad-mode-label">Investigator Sign Up</span>
-        </button>
-        <button class="quad-mode-btn user userlogin" id="btn-mode-user-login" type="button" data-mode="user_login" data-auth-field="userlogin" title="User Login">
+        <button class="quad-mode-btn user userlogin" id="btn-mode-user-login" type="button" data-mode="user_login" title="User Login">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           <span class="quad-mode-label">User Login</span>
         </button>
-        <button class="quad-mode-btn active investigator investigatorlogin" id="btn-mode-investigator-login" type="button" data-mode="investigator_login" data-auth-field="investigatorlogin" title="Investigator Login">
+        <button class="quad-mode-btn active investigator investigatorlogin" id="btn-mode-investigator-login" type="button" data-mode="investigator_login" title="Investigator Login">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           <span class="quad-mode-label">Investigator Login</span>
         </button>
@@ -365,98 +361,79 @@
 
         <button type="button" class="auth-demo-btn" id="btn-demo-login">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <span id="btn-demo-login-text">1-Click Demo Sign In (Insp. Sharma • CBI Lead)</span>
+          <span id="btn-demo-login-text">⚡ 1-Click Demo Sign In (Insp. Sharma • CBI Lead)</span>
         </button>
       </form>
 
-      <!-- Sign Up Form (Initially Hidden) -->
-      <form id="signup-form" style="display:none;">
-        <div class="auth-field" id="signup-group-role">
-          <label class="auth-label" for="signup-role">
-            <span>Account Role &amp; Interface</span>
+      <!-- Admin Provisioning Form (Replaces public signup) -->
+      <form id="admin-form" style="display:none;">
+        <div class="auth-field">
+          <label class="auth-label">
+            <span>Target Account Role</span>
           </label>
-          <select id="signup-role" class="auth-input" style="padding-left:1rem !important; cursor:pointer;">
-            <option value="investigator" selected>Investigator Interface (Full Case Analysis Suite)</option>
-            <option value="user_investigator">User Investigator (Live Camera Surveillance Only)</option>
-          </select>
-        </div>
-
-        <div class="auth-field" id="signup-group-name">
-          <label class="auth-label" for="signup-name">
-            <span id="signup-name-label">Full Name</span>
-          </label>
-          <div class="auth-input-wrapper">
-            <span class="auth-input-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </span>
-            <input type="text" id="signup-name" class="auth-input" placeholder="e.g. Officer Rajesh Verma" required>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;">
+            <button type="button" class="admin-role-btn active" id="admin-role-user" data-role="user_investigator" style="padding:0.65rem 0.5rem;background:rgba(16,185,129,0.22);border:1px solid #10b981;color:#ffffff;border-radius:6px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+              <span>📹</span> <span>User Account</span>
+            </button>
+            <button type="button" class="admin-role-btn" id="admin-role-inv" data-role="investigator" style="padding:0.65rem 0.5rem;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;border-radius:6px;font-weight:700;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+              <span>🛡️</span> <span>Investigator Account</span>
+            </button>
           </div>
         </div>
 
-        <div class="auth-field" id="signup-group-agency">
-          <label class="auth-label" for="signup-agency">
-            <span>Law Enforcement / Surveillance Agency</span>
-          </label>
-          <div class="auth-input-wrapper">
-            <span class="auth-input-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </span>
-            <input type="text" id="signup-agency" class="auth-input" placeholder="e.g. State Cyber Command / Field Unit" value="State Police Cyber Command" required>
-          </div>
-        </div>
-
-        <div class="auth-field" id="signup-group-badge">
-          <label class="auth-label" for="signup-badge">
-            <span>Badge / Operator ID</span>
-          </label>
-          <div class="auth-input-wrapper">
-            <span class="auth-input-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            </span>
-            <input type="text" id="signup-badge" class="auth-input" placeholder="e.g. MH-CYBER-4091" required>
-          </div>
-        </div>
-
-        <div class="auth-field" id="signup-group-email">
-          <label class="auth-label" for="signup-email">
-            <span id="signup-email-label">Email Address</span>
+        <div class="auth-field">
+          <label class="auth-label" for="admin-target-email">
+            <span id="admin-target-email-label">Authorized User Email</span>
           </label>
           <div class="auth-input-wrapper">
             <span class="auth-input-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
             </span>
-            <input type="email" id="signup-email" class="auth-input" placeholder="e.g. user@forensiclens.gov.in" required>
+            <input type="email" id="admin-target-email" class="auth-input" placeholder="e.g. user@forensiclens.gov.in" required value="user@forensiclens.gov.in">
           </div>
         </div>
 
-        <div class="auth-field" id="signup-group-clearance">
-          <label class="auth-label" for="signup-clearance">
-            <span>Forensic Authorization Level</span>
-          </label>
-          <select id="signup-clearance" class="auth-input" style="padding-left:1rem !important; cursor:pointer;">
-            <option value="Level 1 - Forensic Triage Officer">Level 1 - Forensic Triage Officer</option>
-            <option value="Level 2 - Senior Forensic Analyst" selected>Level 2 - Senior Forensic Analyst</option>
-            <option value="Level 3 - Lead Forensic Examiner (Sec 65B Certifier)">Level 3 - Lead Forensic Examiner (Sec 65B Certifier)</option>
-            <option value="Field Surveillance Operator">Field Surveillance Operator</option>
-          </select>
-        </div>
-
-        <div class="auth-field" id="signup-group-password">
-          <label class="auth-label" for="signup-password">
-            <span id="signup-password-label">Password (Min 6 chars)</span>
+        <div class="auth-field">
+          <label class="auth-label" for="admin-target-password">
+            <span id="admin-target-password-label">Authorized User Password</span>
           </label>
           <div class="auth-input-wrapper">
             <span class="auth-input-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </span>
-            <input type="password" id="signup-password" class="auth-input" placeholder="Create strong passphrase" required minlength="6">
+            <input type="password" id="admin-target-password" class="auth-input" placeholder="Set password (min 6 chars)" required value="User@2026">
           </div>
         </div>
 
-        <button type="submit" class="auth-btn-primary" id="btn-signup-submit">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-          <span id="btn-signup-submit-text">Register &amp; Enter Workstation</span>
+        <div class="auth-field">
+          <label class="auth-label" for="admin-master-key">
+            <span>Admin Master Passkey</span>
+          </label>
+          <div class="auth-input-wrapper">
+            <span class="auth-input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2m-1.5 1.5L14 9l-1.5-1.5L10 10l2 2-6 6H2v-4l6-6 2 2 2.5-2.5L11 8l3.5-3.5 2 2Z"/></svg>
+            </span>
+            <input type="password" id="admin-master-key" class="auth-input" placeholder="Enter Admin Master Key" required value="Admin@2026">
+          </div>
+        </div>
+
+        <button type="submit" class="auth-btn-primary" id="btn-admin-submit" style="background:linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%) !important;border-color:#a855f7 !important;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+          <span id="btn-admin-submit-text">Authorize &amp; Issue Credentials</span>
         </button>
+
+        <div class="auth-divider">Currently Authorized Accounts</div>
+
+        <div id="admin-authorized-roster" style="background:rgba(8,12,20,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.75rem;">
+          <div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="color:#34d399;font-weight:700;">📹 User (Live Camera):</span>
+            <span id="admin-roster-user" style="font-family:monospace;color:#e2e8f0;">user@forensiclens.gov.in</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:0.25rem 0;margin-top:0.25rem;">
+            <span style="color:#38bdf8;font-weight:700;">🛡️ Investigator:</span>
+            <span id="admin-roster-inv" style="font-family:monospace;color:#e2e8f0;">investigator@cbi.gov.in</span>
+          </div>
+        </div>
       </form>
     </div>
 
@@ -467,8 +444,7 @@
   </div>
 
   <script>
-    const btnUserSignup = document.getElementById('btn-mode-user-signup');
-    const btnInvSignup = document.getElementById('btn-mode-investigator-signup');
+    const btnModeAdmin = document.getElementById('btn-mode-admin');
     const btnUserLogin = document.getElementById('btn-mode-user-login');
     const btnInvLogin = document.getElementById('btn-mode-investigator-login');
 
@@ -478,7 +454,7 @@
     const authModeDesc = document.getElementById('auth-mode-desc');
 
     const loginForm = document.getElementById('login-form');
-    const signupForm = document.getElementById('signup-form');
+    const adminForm = document.getElementById('admin-form');
     const alertBox = document.getElementById('auth-alert-box');
     const alertText = document.getElementById('auth-alert-text');
 
@@ -488,24 +464,22 @@
     const btnSubmitText = document.getElementById('btn-login-submit-text');
     const demoBtn = document.getElementById('btn-demo-login');
     const demoBtnText = document.getElementById('btn-demo-login-text');
-    const signupRole = document.getElementById('signup-role');
-    const signupAgency = document.getElementById('signup-agency');
-    const signupClearance = document.getElementById('signup-clearance');
-    const signupBadge = document.getElementById('signup-badge');
 
-    const signupGroupRole = document.getElementById('signup-group-role');
-    const signupGroupName = document.getElementById('signup-group-name');
-    const signupGroupAgency = document.getElementById('signup-group-agency');
-    const signupGroupBadge = document.getElementById('signup-group-badge');
-    const signupGroupEmail = document.getElementById('signup-group-email');
-    const signupGroupClearance = document.getElementById('signup-group-clearance');
-    const signupGroupPassword = document.getElementById('signup-group-password');
-
-    const signupEmailLabel = document.getElementById('signup-email-label');
-    const signupPasswordLabel = document.getElementById('signup-password-label');
-    const btnSignupSubmitText = document.getElementById('btn-signup-submit-text');
+    // Admin form fields
+    const adminRoleUserBtn = document.getElementById('admin-role-user');
+    const adminRoleInvBtn = document.getElementById('admin-role-inv');
+    const adminTargetEmail = document.getElementById('admin-target-email');
+    const adminTargetEmailLabel = document.getElementById('admin-target-email-label');
+    const adminTargetPassword = document.getElementById('admin-target-password');
+    const adminTargetPasswordLabel = document.getElementById('admin-target-password-label');
+    const adminMasterKey = document.getElementById('admin-master-key');
+    const btnAdminSubmit = document.getElementById('btn-admin-submit');
+    const btnAdminSubmitText = document.getElementById('btn-admin-submit-text');
+    const adminRosterUser = document.getElementById('admin-roster-user');
+    const adminRosterInv = document.getElementById('admin-roster-inv');
 
     let currentMode = 'investigator_login';
+    let currentAdminRole = 'user_investigator';
 
     function hideAlert() {
       if (alertBox) alertBox.style.display = 'none';
@@ -518,69 +492,98 @@
       alertBox.style.display = 'flex';
     }
 
+    async function refreshAdminRoster() {
+      try {
+        const res = await fetch('/api/auth/admin/accounts');
+        if (res.ok) {
+          const data = await res.json();
+          if (adminRosterUser && data.user) {
+            adminRosterUser.textContent = data.user.email;
+          }
+          if (adminRosterInv && data.investigator) {
+            adminRosterInv.textContent = data.investigator.email;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not refresh admin roster:', err);
+      }
+    }
+
+    function setAdminRole(role) {
+      currentAdminRole = role;
+      if (role === 'user_investigator') {
+        if (adminRoleUserBtn) {
+          adminRoleUserBtn.style.background = 'rgba(16,185,129,0.25)';
+          adminRoleUserBtn.style.borderColor = '#10b981';
+          adminRoleUserBtn.style.color = '#ffffff';
+        }
+        if (adminRoleInvBtn) {
+          adminRoleInvBtn.style.background = 'rgba(15,23,42,0.6)';
+          adminRoleInvBtn.style.borderColor = 'rgba(255,255,255,0.12)';
+          adminRoleInvBtn.style.color = '#94a3b8';
+        }
+        if (adminTargetEmailLabel) adminTargetEmailLabel.textContent = 'Authorized User Email';
+        if (adminTargetPasswordLabel) adminTargetPasswordLabel.textContent = 'Authorized User Password';
+        if (adminTargetEmail) {
+          adminTargetEmail.placeholder = 'e.g. user@forensiclens.gov.in';
+          if (!adminTargetEmail.value || adminTargetEmail.value === 'investigator@cbi.gov.in') {
+            adminTargetEmail.value = 'user@forensiclens.gov.in';
+          }
+        }
+        if (adminTargetPassword) {
+          adminTargetPassword.placeholder = 'Set user password (min 6 chars)';
+          if (!adminTargetPassword.value || adminTargetPassword.value === 'Investigator@2026') {
+            adminTargetPassword.value = 'User@2026';
+          }
+        }
+      } else {
+        if (adminRoleInvBtn) {
+          adminRoleInvBtn.style.background = 'rgba(14,165,233,0.25)';
+          adminRoleInvBtn.style.borderColor = '#38bdf8';
+          adminRoleInvBtn.style.color = '#ffffff';
+        }
+        if (adminRoleUserBtn) {
+          adminRoleUserBtn.style.background = 'rgba(15,23,42,0.6)';
+          adminRoleUserBtn.style.borderColor = 'rgba(255,255,255,0.12)';
+          adminRoleUserBtn.style.color = '#94a3b8';
+        }
+        if (adminTargetEmailLabel) adminTargetEmailLabel.textContent = 'Authorized Investigator Email';
+        if (adminTargetPasswordLabel) adminTargetPasswordLabel.textContent = 'Authorized Investigator Password';
+        if (adminTargetEmail) {
+          adminTargetEmail.placeholder = 'e.g. investigator@cbi.gov.in';
+          if (!adminTargetEmail.value || adminTargetEmail.value === 'user@forensiclens.gov.in') {
+            adminTargetEmail.value = 'investigator@cbi.gov.in';
+          }
+        }
+        if (adminTargetPassword) {
+          adminTargetPassword.placeholder = 'Set investigator password (min 6 chars)';
+          if (!adminTargetPassword.value || adminTargetPassword.value === 'User@2026') {
+            adminTargetPassword.value = 'Investigator@2026';
+          }
+        }
+      }
+    }
+
+    if (adminRoleUserBtn) adminRoleUserBtn.addEventListener('click', () => setAdminRole('user_investigator'));
+    if (adminRoleInvBtn) adminRoleInvBtn.addEventListener('click', () => setAdminRole('investigator'));
+
     function setAuthMode(mode) {
       currentMode = mode;
       hideAlert();
 
-      [btnUserSignup, btnInvSignup, btnUserLogin, btnInvLogin].forEach(b => {
-        if (!b) return;
-        b.classList.remove('active');
+      [btnModeAdmin, btnUserLogin, btnInvLogin].forEach(b => {
+        if (b) b.classList.remove('active');
       });
 
-      if (mode === 'user_signup') {
-        if (btnUserSignup) btnUserSignup.classList.add('active');
-        if (authPortalBadge) authPortalBadge.className = 'portal-badge user';
-        if (authPortalBadgeText) authPortalBadgeText.textContent = 'FIELD SURVEILLANCE OPERATOR PORTAL';
-        if (authModeTitle) authModeTitle.textContent = 'User Sign Up (usersignup)';
-        if (authModeDesc) authModeDesc.textContent = 'Enter Full Name, Email, and Password to Register';
+      if (mode === 'admin') {
+        if (btnModeAdmin) btnModeAdmin.classList.add('active');
+        if (authPortalBadge) authPortalBadge.className = 'portal-badge admin';
+        if (authPortalBadgeText) authPortalBadgeText.textContent = 'ADMIN CREDENTIAL PROVISIONING PORTAL';
+        if (authModeTitle) authModeTitle.textContent = 'Admin Authorization Field';
+        if (authModeDesc) authModeDesc.textContent = 'Only Admin can configure email and password for User and Investigator access';
         if (loginForm) loginForm.style.display = 'none';
-        if (signupForm) signupForm.style.display = 'block';
-
-        // Show ONLY Full Name, Email, and Password
-        if (signupGroupRole) signupGroupRole.style.display = 'none';
-        if (signupGroupAgency) signupGroupAgency.style.display = 'none';
-        if (signupGroupBadge) signupGroupBadge.style.display = 'none';
-        if (signupGroupClearance) signupGroupClearance.style.display = 'none';
-        if (signupGroupName) signupGroupName.style.display = 'block';
-        if (signupGroupEmail) signupGroupEmail.style.display = 'block';
-        if (signupGroupPassword) signupGroupPassword.style.display = 'block';
-
-        if (signupAgency) signupAgency.required = false;
-        if (signupBadge) signupBadge.required = false;
-        if (signupEmailLabel) signupEmailLabel.textContent = 'Email Address';
-        if (signupPasswordLabel) signupPasswordLabel.textContent = 'Password (Min 6 chars)';
-        if (btnSignupSubmitText) btnSignupSubmitText.textContent = 'Register & Enter Live Camera';
-
-        if (signupRole) signupRole.value = 'user_investigator';
-        if (signupAgency) signupAgency.value = 'CCTV Surveillance Monitoring Cell';
-        if (signupClearance) signupClearance.value = 'Field Surveillance Operator';
-      } else if (mode === 'investigator_signup') {
-        if (btnInvSignup) btnInvSignup.classList.add('active');
-        if (authPortalBadge) authPortalBadge.className = 'portal-badge investigator';
-        if (authPortalBadgeText) authPortalBadgeText.textContent = 'INVESTIGATOR FORENSIC GATEWAY';
-        if (authModeTitle) authModeTitle.textContent = 'Investigator Sign Up (investigatorsignup)';
-        if (authModeDesc) authModeDesc.textContent = 'Register Authorized Forensic Examiner for Full Case Investigation Suite';
-        if (loginForm) loginForm.style.display = 'none';
-        if (signupForm) signupForm.style.display = 'block';
-
-        // Show all forensic registration fields
-        if (signupGroupRole) signupGroupRole.style.display = 'block';
-        if (signupGroupAgency) signupGroupAgency.style.display = 'block';
-        if (signupGroupBadge) signupGroupBadge.style.display = 'block';
-        if (signupGroupClearance) signupGroupClearance.style.display = 'block';
-        if (signupGroupName) signupGroupName.style.display = 'block';
-        if (signupGroupEmail) signupGroupEmail.style.display = 'block';
-        if (signupGroupPassword) signupGroupPassword.style.display = 'block';
-
-        if (signupAgency) signupAgency.required = true;
-        if (signupBadge) signupBadge.required = true;
-        if (signupEmailLabel) signupEmailLabel.textContent = 'Official Email Address';
-        if (signupPasswordLabel) signupPasswordLabel.textContent = 'Secure Password (Min 6 chars)';
-        if (btnSignupSubmitText) btnSignupSubmitText.textContent = 'Register & Enter Workstation';
-
-        if (signupRole) signupRole.value = 'investigator';
-        if (signupAgency) signupAgency.value = 'State Police Cyber Command';
-        if (signupClearance) signupClearance.value = 'Level 2 - Senior Forensic Analyst';
+        if (adminForm) adminForm.style.display = 'block';
+        refreshAdminRoster();
       } else if (mode === 'user_login') {
         if (btnUserLogin) btnUserLogin.classList.add('active');
         if (authPortalBadge) authPortalBadge.className = 'portal-badge user';
@@ -588,17 +591,20 @@
         if (authModeTitle) authModeTitle.textContent = 'User Login (userlogin)';
         if (authModeDesc) authModeDesc.textContent = 'Live Camera Surveillance & Real-Time Monitoring';
         if (loginForm) loginForm.style.display = 'block';
-        if (signupForm) signupForm.style.display = 'none';
+        if (adminForm) adminForm.style.display = 'none';
         if (identifierLabel) identifierLabel.textContent = 'Surveillance Email or Operator ID';
         if (identifierInput) {
           identifierInput.placeholder = 'e.g. user@forensiclens.gov.in or CAM-26150';
-          identifierInput.value = 'user@forensiclens.gov.in';
+          if (!identifierInput.value || identifierInput.value === 'investigator@cbi.gov.in') {
+            identifierInput.value = 'user@forensiclens.gov.in';
+          }
         }
-        if (passwordInput) passwordInput.value = 'User@2026';
+        if (passwordInput && (!passwordInput.value || passwordInput.value === 'Investigator@2026')) {
+          passwordInput.value = 'User@2026';
+        }
         if (btnSubmitText) btnSubmitText.textContent = 'Sign In to Live Camera Surveillance';
         if (demoBtn) demoBtn.className = 'auth-demo-btn user-demo';
         if (demoBtnText) demoBtnText.textContent = '📹 1-Click Demo Sign In (Operator P. Patel • Field Surveillance)';
-        if (signupRole) signupRole.value = 'user_investigator';
       } else {
         // investigator_login
         currentMode = 'investigator_login';
@@ -608,22 +614,24 @@
         if (authModeTitle) authModeTitle.textContent = 'Investigator Login (investigatorlogin • Investigator Sign In)';
         if (authModeDesc) authModeDesc.textContent = 'Case Overview, Video Intelligence, Timeline, Graph & Section 65B Report';
         if (loginForm) loginForm.style.display = 'block';
-        if (signupForm) signupForm.style.display = 'none';
+        if (adminForm) adminForm.style.display = 'none';
         if (identifierLabel) identifierLabel.textContent = 'Official Email or Badge ID';
         if (identifierInput) {
           identifierInput.placeholder = 'e.g. investigator@cbi.gov.in or IND-26150';
-          identifierInput.value = 'investigator@cbi.gov.in';
+          if (!identifierInput.value || identifierInput.value === 'user@forensiclens.gov.in') {
+            identifierInput.value = 'investigator@cbi.gov.in';
+          }
         }
-        if (passwordInput) passwordInput.value = 'Investigator@2026';
+        if (passwordInput && (!passwordInput.value || passwordInput.value === 'User@2026')) {
+          passwordInput.value = 'Investigator@2026';
+        }
         if (btnSubmitText) btnSubmitText.textContent = 'Sign In to Forensic Workstation';
         if (demoBtn) demoBtn.className = 'auth-demo-btn';
         if (demoBtnText) demoBtnText.textContent = '⚡ 1-Click Demo Sign In (Insp. Sharma • CBI Lead)';
-        if (signupRole) signupRole.value = 'investigator';
       }
     }
 
-    if (btnUserSignup) btnUserSignup.addEventListener('click', () => setAuthMode('user_signup'));
-    if (btnInvSignup) btnInvSignup.addEventListener('click', () => setAuthMode('investigator_signup'));
+    if (btnModeAdmin) btnModeAdmin.addEventListener('click', () => setAuthMode('admin'));
     if (btnUserLogin) btnUserLogin.addEventListener('click', () => setAuthMode('user_login'));
     if (btnInvLogin) btnInvLogin.addEventListener('click', () => setAuthMode('investigator_login'));
 
@@ -632,93 +640,124 @@
     const initialPortal = "{{ portal or 'investigator' }}";
     const urlParams = new URLSearchParams(window.location.search);
     const roleParam = (urlParams.get('role') || '').toLowerCase();
-    const isSignupUrl = window.location.pathname.includes('signup') || initialMode === 'signup' || urlParams.has('signup');
+    const isAdminUrl = window.location.pathname.includes('admin') || initialMode === 'admin' || urlParams.has('admin');
     const isUserPortal = initialPortal === 'user_investigator' || roleParam.includes('user') || roleParam.includes('cam') || window.location.pathname.includes('user');
 
-    if (isSignupUrl) {
-      if (isUserPortal) {
-        setAuthMode('user_signup');
-      } else {
-        setAuthMode('investigator_signup');
-      }
+    if (isAdminUrl) {
+      setAuthMode('admin');
+    } else if (isUserPortal) {
+      setAuthMode('user_login');
     } else {
-      if (isUserPortal) {
-        setAuthMode('user_login');
-      } else {
-        setAuthMode('investigator_login');
-      }
+      setAuthMode('investigator_login');
     }
 
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      hideAlert();
-      const identifier = identifierInput.value.trim();
-      const password = passwordInput.value;
+    // Refresh roster on initial load
+    refreshAdminRoster();
 
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, password }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          showAlert(data.error || 'Authentication failed. Please verify credentials.');
+    // Login Form Submit Handler
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+        const identifier = identifierInput.value.trim();
+        const password = passwordInput.value;
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier, password }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            showAlert(data.error || 'Authentication failed. Please verify credentials.');
+            return;
+          }
+          localStorage.setItem('forensiclens_user', JSON.stringify(data.user));
+          const roleDesc = data.user.role === 'user_investigator' ? 'User Interface (Live Camera Only)' : 'Investigator Interface';
+          showAlert(`Authentication verified (${roleDesc})! Redirecting to workstation...`, false);
+          setTimeout(() => { window.location.href = '/'; }, 500);
+        } catch (err) {
+          showAlert('Unable to connect to authentication server: ' + err.message);
+        }
+      });
+    }
+
+    // Admin Provisioning Form Submit Handler
+    if (adminForm) {
+      adminForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+        const role = currentAdminRole;
+        const email = adminTargetEmail ? adminTargetEmail.value.trim() : '';
+        const password = adminTargetPassword ? adminTargetPassword.value : '';
+        const admin_key = adminMasterKey ? adminMasterKey.value : '';
+
+        if (!email || !password) {
+          showAlert('Please provide both authorized email and password.');
           return;
         }
-        localStorage.setItem('forensiclens_user', JSON.stringify(data.user));
-        const roleDesc = data.user.role === 'user_investigator' ? 'User Interface (Live Camera Only)' : 'Investigator Interface';
-        showAlert(`Authentication verified (${roleDesc})! Redirecting to workstation...`, false);
-        setTimeout(() => { window.location.href = '/'; }, 500);
-      } catch (err) {
-        showAlert('Unable to connect to authentication server: ' + err.message);
-      }
-    });
 
-    signupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      hideAlert();
-      const isUserMode = (currentMode === 'user_signup');
-      const role = isUserMode ? 'user_investigator' : (signupRole ? signupRole.value : 'investigator');
-      const name = document.getElementById('signup-name').value.trim();
-      const agency = isUserMode ? 'CCTV Surveillance Monitoring Cell' : (document.getElementById('signup-agency').value.trim() || 'State Police Cyber Command');
-      const badge_id = isUserMode ? '' : document.getElementById('signup-badge').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
-      const clearance = isUserMode ? 'Field Surveillance Operator' : document.getElementById('signup-clearance').value;
-      const password = document.getElementById('signup-password').value;
+        try {
+          if (btnAdminSubmitText) btnAdminSubmitText.textContent = 'Authorizing & Updating...';
+          const res = await fetch('/api/auth/admin/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role, email, password, admin_key }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            showAlert(data.error || 'Admin authorization failed. Verify master key.');
+            if (btnAdminSubmitText) btnAdminSubmitText.textContent = 'Authorize & Issue Credentials';
+            return;
+          }
 
-      try {
-        const res = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, agency, badge_id, email, clearance, password, role }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          showAlert(data.error || 'Registration failed.');
-          return;
+          const targetRoleName = role === 'user_investigator' ? 'User (Live Camera)' : 'Investigator';
+          showAlert(`✓ Success! Admin authorized new credentials for ${targetRoleName} (${email}). Only this email and password can now be used to sign in!`, false);
+          if (btnAdminSubmitText) btnAdminSubmitText.textContent = 'Credentials Issued ✓';
+          setTimeout(() => {
+            if (btnAdminSubmitText) btnAdminSubmitText.textContent = 'Authorize & Issue Credentials';
+          }, 3000);
+
+          // Update roster display
+          if (role === 'user_investigator' && adminRosterUser) {
+            adminRosterUser.textContent = email;
+          } else if (role === 'investigator' && adminRosterInv) {
+            adminRosterInv.textContent = email;
+          }
+
+          // Pre-populate login form fields so switching to login works seamlessly
+          if (identifierInput) identifierInput.value = email;
+          if (passwordInput) passwordInput.value = password;
+        } catch (err) {
+          showAlert('Unable to reach server: ' + err.message);
+          if (btnAdminSubmitText) btnAdminSubmitText.textContent = 'Authorize & Issue Credentials';
         }
-        localStorage.setItem('forensiclens_user', JSON.stringify(data.user));
-        const roleDesc = data.user.role === 'user_investigator' ? 'User Interface (Live Camera Only)' : 'Investigator Interface';
-        showAlert(`Account registered (${roleDesc})! Redirecting to workstation...`, false);
-        setTimeout(() => { window.location.href = '/'; }, 600);
-      } catch (err) {
-        showAlert('Unable to reach server: ' + err.message);
-      }
-    });
+      });
+    }
 
-    demoBtn.addEventListener('click', () => {
-      if (currentMode === 'user_login' || currentMode === 'user_signup') {
-        setAuthMode('user_login');
-        identifierInput.value = 'user@forensiclens.gov.in';
-        passwordInput.value = 'User@2026';
-      } else {
-        setAuthMode('investigator_login');
-        identifierInput.value = 'investigator@cbi.gov.in';
-        passwordInput.value = 'Investigator@2026';
-      }
-      loginForm.dispatchEvent(new Event('submit'));
-    });
+    // Demo Button Handler
+    if (demoBtn) {
+      demoBtn.addEventListener('click', () => {
+        if (currentMode === 'user_login') {
+          if (adminRosterUser && adminRosterUser.textContent) {
+            identifierInput.value = adminRosterUser.textContent;
+          } else {
+            identifierInput.value = 'user@forensiclens.gov.in';
+          }
+          passwordInput.value = 'User@2026';
+        } else {
+          setAuthMode('investigator_login');
+          if (adminRosterInv && adminRosterInv.textContent) {
+            identifierInput.value = adminRosterInv.textContent;
+          } else {
+            identifierInput.value = 'investigator@cbi.gov.in';
+          }
+          passwordInput.value = 'Investigator@2026';
+        }
+        if (loginForm) loginForm.dispatchEvent(new Event('submit'));
+      });
+    }
   </script>
 </body>
 </html>

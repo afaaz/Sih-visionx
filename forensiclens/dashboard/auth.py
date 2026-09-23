@@ -219,3 +219,118 @@ class AuthManager:
                     "role": user_role,
                 }
         return None
+
+    def admin_provision_user(
+        self,
+        role: str,
+        email: str,
+        password: str,
+        name: str = "",
+        admin_key: str = "",
+    ) -> dict[str, Any]:
+        """Provision or update User/Investigator credentials via Admin authorization."""
+        admin_master = os.environ.get("FORENSICLENS_ADMIN_KEY", "Admin@2026")
+        if admin_key != admin_master:
+            raise ValueError("Unauthorized: Invalid Admin Master Key.")
+
+        role_clean = role.strip().lower()
+        if "user" in role_clean or "surv" in role_clean:
+            resolved_role = "user_investigator"
+            default_name = "Field Surveillance Operator"
+            default_agency = "CCTV Surveillance Monitoring Cell"
+            default_clearance = "Field Surveillance Operator"
+            badge_prefix = "CAM"
+        else:
+            resolved_role = "investigator"
+            default_name = "Forensic Lead Investigator"
+            default_agency = "State Police Cyber Command"
+            default_clearance = "Level 2 - Senior Forensic Analyst"
+            badge_prefix = "IND"
+
+        email_clean = email.strip().lower()
+        if not email_clean or "@" not in email_clean:
+            raise ValueError("A valid email address is required.")
+        if not password or len(password) < 6:
+            raise ValueError("Password must be at least 6 characters.")
+
+        users = self._load_users()
+        target_user = None
+
+        # Check if user with this email exists
+        for u in users:
+            if u.get("email", "").strip().lower() == email_clean:
+                target_user = u
+                break
+
+        # If not found by email, check if there is an existing primary account for this role to update
+        if not target_user:
+            for u in users:
+                u_role = u.get("role", "")
+                if u_role == resolved_role and (
+                    (resolved_role == "user_investigator" and u.get("id") == "usr-002")
+                    or (resolved_role == "investigator" and u.get("id") == "inv-001")
+                ):
+                    target_user = u
+                    break
+
+        salt = secrets.token_hex(16)
+        password_hash = self._hash_password(password, salt)
+
+        if target_user:
+            target_user["email"] = email_clean
+            target_user["password_hash"] = password_hash
+            target_user["salt"] = salt
+            target_user["role"] = resolved_role
+            if name.strip():
+                target_user["name"] = name.strip()
+            target_user["is_active"] = True
+            result_user = target_user
+        else:
+            badge_id = f"{badge_prefix}-{secrets.token_hex(2).upper()}"
+            result_user = {
+                "id": f"{'usr' if resolved_role == 'user_investigator' else 'inv'}-{secrets.token_hex(4)}",
+                "email": email_clean,
+                "name": name.strip() or default_name,
+                "badge_id": badge_id,
+                "agency": default_agency,
+                "clearance": default_clearance,
+                "role": resolved_role,
+                "salt": salt,
+                "password_hash": password_hash,
+                "created_at": "2026-09-23T00:00:00Z",
+                "is_active": True,
+            }
+            users.append(result_user)
+
+        self._save_users(users)
+
+        return {
+            "id": result_user["id"],
+            "email": result_user["email"],
+            "name": result_user["name"],
+            "badge_id": result_user["badge_id"],
+            "agency": result_user["agency"],
+            "clearance": result_user["clearance"],
+            "role": result_user["role"],
+        }
+
+    def get_provisioned_accounts(self) -> list[dict[str, Any]]:
+        """Return active user and investigator accounts."""
+        users = self._load_users()
+        accounts = []
+        for u in users:
+            if not u.get("is_active", True):
+                continue
+            u_role = u.get("role")
+            if not u_role:
+                clearance_str = str(u.get("clearance", "")).lower()
+                u_role = "user_investigator" if ("surveillance" in clearance_str or "operator" in clearance_str) else "investigator"
+            accounts.append({
+                "id": u.get("id"),
+                "email": u.get("email"),
+                "name": u.get("name"),
+                "badge_id": u.get("badge_id"),
+                "role": u_role,
+            })
+        return accounts
+

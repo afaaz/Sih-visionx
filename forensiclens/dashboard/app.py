@@ -191,6 +191,51 @@ def create_app(report_data: dict[str, Any] | None = None, evidence_root: Path | 
         except Exception as e:
             return jsonify({"status": "error", "error": f"Registration failed: {e}"}), 500
 
+    @app.route("/api/auth/admin/provision", methods=["POST"])
+    def api_admin_provision() -> Any:
+        payload = request.get_json(silent=True) or {}
+        role = str(payload.get("role") or "investigator").strip()
+        email = str(payload.get("email") or "").strip()
+        password = str(payload.get("password") or "")
+        name = str(payload.get("name") or "").strip()
+        admin_key = str(payload.get("admin_key") or "").strip()
+
+        try:
+            user = auth_manager.admin_provision_user(
+                role=role,
+                email=email,
+                password=password,
+                name=name,
+                admin_key=admin_key,
+            )
+            role_label = "User Interface (Live Camera Only)" if user.get("role") == "user_investigator" else "Investigator Interface"
+            return jsonify({
+                "status": "success",
+                "user": user,
+                "message": f"Credentials authorized by Administrator for {user['email']} ({role_label}). Only this email and password can now sign in.",
+            }), 200
+        except ValueError as ve:
+            return jsonify({"status": "error", "error": str(ve)}), 400
+        except Exception as e:
+            return jsonify({"status": "error", "error": f"Admin provisioning failed: {e}"}), 500
+
+    @app.route("/api/auth/admin/accounts", methods=["GET"])
+    def api_admin_accounts() -> Any:
+        accounts = auth_manager.get_provisioned_accounts()
+        user_account = None
+        inv_account = None
+        for a in reversed(accounts):
+            if a.get("role") == "user_investigator" and not user_account:
+                user_account = a
+            elif a.get("role") == "investigator" and not inv_account:
+                inv_account = a
+        return jsonify({
+            "status": "success",
+            "accounts": accounts,
+            "user": user_account or {"email": "user@forensiclens.gov.in", "role": "user_investigator"},
+            "investigator": inv_account or {"email": "investigator@cbi.gov.in", "role": "investigator"},
+        })
+
     @app.route("/api/auth/logout", methods=["POST"])
     def api_logout() -> Any:
         session.pop("user", None)
